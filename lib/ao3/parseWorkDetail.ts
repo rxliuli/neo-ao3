@@ -15,7 +15,8 @@ function parseNum(text: string | null | undefined): number {
   return parseInt(text?.replace(/,/g, '') ?? '0', 10) || 0
 }
 
-function parseMetaTags(metaDl: Element, dtClass: string): string[] {
+function parseMetaTags(metaDl: Element | null, dtClass: string): string[] {
+  if (!metaDl) return []
   const dd = metaDl.querySelector(`dd.${dtClass.replace(/\s+/g, '.')}`)
   if (!dd) return []
   return Array.from(dd.querySelectorAll('a.tag')).map(textOf)
@@ -42,16 +43,16 @@ export function parseWorkDetail(doc: Document): WorkDetail {
   // Metadata from dl.work.meta.group
   const metaDl = doc.querySelector('dl.work.meta.group')
 
-  const rating = parseMetaTags(metaDl!, 'rating tags')[0] ?? ''
-  const warnings = parseMetaTags(metaDl!, 'warning tags')
-  const categories = parseMetaTags(metaDl!, 'category tags')
-  const fandoms = parseMetaTags(metaDl!, 'fandom tags')
+  const rating = parseMetaTags(metaDl, 'rating tags')[0] ?? ''
+  const warnings = parseMetaTags(metaDl, 'warning tags')
+  const categories = parseMetaTags(metaDl, 'category tags')
+  const fandoms = parseMetaTags(metaDl, 'fandom tags')
 
   const tags: WorkTags = {
     warnings,
-    relationships: parseMetaTags(metaDl!, 'relationship tags'),
-    characters: parseMetaTags(metaDl!, 'character tags'),
-    freeforms: parseMetaTags(metaDl!, 'freeform tags'),
+    relationships: parseMetaTags(metaDl, 'relationship tags'),
+    characters: parseMetaTags(metaDl, 'character tags'),
+    freeforms: parseMetaTags(metaDl, 'freeform tags'),
   }
 
   // Language
@@ -94,12 +95,14 @@ export function parseWorkDetail(doc: Document): WorkDetail {
   const series: SeriesInfo[] = Array.from(
     doc.querySelectorAll('dd.series span.position'),
   ).map((span) => {
-    const a = span.querySelector('a')
-    const url = a?.getAttribute('href') ?? ''
+    const links = span.querySelectorAll('a')
+    // Last link is the series name, first link may be the part number
+    const seriesLink = links[links.length - 1]
+    const url = seriesLink?.getAttribute('href') ?? ''
     const partText = span.textContent?.match(/Part\s+(\d+)/)?.[1]
     return {
       id: url.split('/').pop() ?? '',
-      name: textOf(a),
+      name: textOf(seriesLink),
       part: parseInt(partText ?? '0', 10) || 0,
       url,
     }

@@ -1,15 +1,154 @@
-import { ShadowProvider } from '@/integrations/shadow/ShadowProvider'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ThemeProvider } from '@/integrations/theme/ThemeProvider'
-import { Toaster } from 'sonner'
-import { IndexPage } from './pages/IndexPage'
+import { AppHeader } from './components/AppHeader'
+import { HomePage } from './pages/HomePage'
+import { WorkListPage } from './pages/WorkListPage'
+import { WorkDetailPage } from './pages/WorkDetailPage'
+import { FandomListPage } from './pages/FandomListPage'
+import { NavigationProvider } from './navigation'
+import { matchRoute, type Route } from './router'
 
-export function App(props: { container: HTMLElement }) {
+export function App(props: {
+  initialRoute: Route
+  initialDoc: Document | null
+  onShowOriginal: () => void
+}) {
+  const [route, setRoute] = useState<Route>(props.initialRoute)
+  const [doc, setDoc] = useState<Document | null>(props.initialDoc)
+  const [currentUrl, setCurrentUrl] = useState(window.location.href)
+  const [loading, setLoading] = useState(false)
+  const navIdRef = useRef(0)
+
+  const navigate = useCallback(async (url: string) => {
+    // Resolve to absolute URL
+    const resolved = new URL(url, window.location.href).href
+    const matched = matchRoute(resolved)
+
+    // If we can't handle this route, do a full navigation
+    if (!matched) {
+      window.location.href = resolved
+      return
+    }
+
+    const id = ++navIdRef.current
+    setLoading(true)
+
+    try {
+      let newDoc: Document | null = null
+      if (matched.type !== 'home') {
+        const response = await fetch(resolved)
+        const html = await response.text()
+        if (id !== navIdRef.current) return // stale
+        newDoc = new DOMParser().parseFromString(html, 'text/html')
+      }
+
+      if (id !== navIdRef.current) return // stale
+
+      history.pushState(null, '', resolved)
+      setRoute(matched)
+      setDoc(newDoc)
+      setCurrentUrl(resolved)
+      window.scrollTo(0, 0)
+    } finally {
+      if (id === navIdRef.current) {
+        setLoading(false)
+      }
+    }
+  }, [])
+
+  // Global <a> click interceptor
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      // Skip if modifier keys held (new tab behavior)
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      // Skip non-left clicks
+      if (e.button !== 0) return
+
+      // Find the closest <a> element
+      const anchor = (e.target as Element).closest('a')
+      if (!anchor) return
+
+      // Skip if target attribute is set (e.g. target="_blank")
+      if (anchor.target) return
+
+      const href = anchor.href
+      if (!href) return
+
+      // Skip external origins
+      try {
+        const linkUrl = new URL(href, window.location.href)
+        if (linkUrl.origin !== window.location.origin) return
+
+        const matched = matchRoute(linkUrl.href)
+        if (matched) {
+          e.preventDefault()
+          navigate(linkUrl.href)
+        }
+        // Unmatched routes: normal browser navigation
+      } catch {
+        // Invalid URL, let browser handle it
+      }
+    }
+
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [navigate])
+
+  // popstate listener for back/forward
+  useEffect(() => {
+    async function handlePopState() {
+      const matched = matchRoute(window.location.href)
+      if (!matched) {
+        window.location.reload()
+        return
+      }
+
+      const id = ++navIdRef.current
+      setLoading(true)
+
+      try {
+        let newDoc: Document | null = null
+        if (matched.type !== 'home') {
+          const response = await fetch(window.location.href)
+          const html = await response.text()
+          if (id !== navIdRef.current) return
+          newDoc = new DOMParser().parseFromString(html, 'text/html')
+        }
+
+        if (id !== navIdRef.current) return
+
+        setRoute(matched)
+        setDoc(newDoc)
+        setCurrentUrl(window.location.href)
+      } finally {
+        if (id === navIdRef.current) {
+          setLoading(false)
+        }
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
   return (
-    <ShadowProvider container={props.container}>
-      <ThemeProvider>
-        <Toaster richColors={true} closeButton={true} />
-        <IndexPage />
-      </ThemeProvider>
-    </ShadowProvider>
+    <ThemeProvider>
+      <NavigationProvider value={navigate}>
+        {loading && (
+          <div className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-primary animate-pulse" />
+        )}
+        <AppHeader onShowOriginal={props.onShowOriginal} />
+        {route.type === 'home' && <HomePage key={currentUrl} />}
+        {route.type === 'work-list' && doc && (
+          <WorkListPage key={currentUrl} doc={doc} url={currentUrl} />
+        )}
+        {route.type === 'work-detail' && doc && (
+          <WorkDetailPage key={currentUrl} doc={doc} />
+        )}
+        {route.type === 'fandom-list' && doc && (
+          <FandomListPage key={currentUrl} doc={doc} />
+        )}
+      </NavigationProvider>
+    </ThemeProvider>
   )
 }

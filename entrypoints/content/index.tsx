@@ -1,40 +1,53 @@
 import ReactDOM from 'react-dom/client'
-import { App } from './App.tsx'
+import { App } from './App'
 import styles from './style.css?inline'
-import styles2 from 'sonner/dist/styles.css?inline'
-import { addStyle } from '@/lib/addStyle.ts'
+import { matchRoute } from './router'
 
 export default defineContentScript({
-  matches: ['<all_urls>'],
-  cssInjectionMode: 'ui',
+  matches: ['*://archiveofourown.org/*'],
+  cssInjectionMode: 'manual',
+  runAt: 'document_start',
 
   async main(ctx) {
-    const ui = await createShadowRootUi(ctx, {
-      name: 'example-ui',
-      position: 'modal',
-      anchor: 'body',
-      onMount: (container) => {
-        const shadowEl = document.querySelector('example-ui') as HTMLElement
-        const shadow = shadowEl!.shadowRoot!
-        shadowEl.style.zIndex = '9999'
-        addStyle(shadow, [styles, styles2])
+    const route = matchRoute(window.location.href)
+    if (!route) return
 
-        // Container is a body, and React warns when creating a root on the body, so create a wrapper div
-        const app = document.createElement('div')
-        container.append(app)
+    // Stop the page from loading any more resources (CSS, images, scripts)
+    window.stop()
 
-        // Create a root on the UI container and render a component
-        const root = ReactDOM.createRoot(app)
-        root.render(<App container={container} />)
-        return root
-      },
-      onRemove: (root) => {
-        // Unmount the root when the UI is removed
-        root?.unmount()
-      },
+    // Replace document with our minimal shell
+    document.documentElement.innerHTML =
+      `<head><style>${styles}</style></head>` +
+      `<body><div id="neo-ao3-root"></div></body>`
+
+    // Fetch the original page HTML for data parsing (skip for pages that don't need it)
+    let doc: Document | null = null
+    if (route.type !== 'home') {
+      const response = await fetch(window.location.href)
+      const html = await response.text()
+      doc = new DOMParser().parseFromString(html, 'text/html')
+    }
+
+    // Mount React
+    const rootEl = document.getElementById('neo-ao3-root')!
+    const root = ReactDOM.createRoot(rootEl)
+
+    function showOriginal() {
+      const url = new URL(window.location.href)
+      url.searchParams.set('neo-ao3-original', '')
+      window.location.href = url.toString()
+    }
+
+    root.render(
+      <App
+        initialRoute={route}
+        initialDoc={doc}
+        onShowOriginal={showOriginal}
+      />,
+    )
+
+    ctx.onInvalidated(() => {
+      root.unmount()
     })
-
-    // 4. Mount the UI
-    ui.mount()
   },
 })

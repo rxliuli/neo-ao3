@@ -2,8 +2,6 @@ import {
   ThemeProvider as NextThemeProvider,
   useTheme as useNextTheme,
 } from 'next-themes'
-import { useEffect } from 'react'
-import { getShadowRoot } from '../shadow/ShadowProvider'
 
 type Theme = 'dark' | 'light' | 'system'
 
@@ -11,20 +9,6 @@ type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
-}
-
-function ThemeClassSetter() {
-  const { resolvedTheme } = useNextTheme()
-
-  useEffect(() => {
-    if (!resolvedTheme) {
-      return
-    }
-    const root = getShadowRoot()
-    root.classList.remove('light', 'dark')
-    root.classList.add(resolvedTheme)
-  }, [resolvedTheme])
-  return <></>
 }
 
 export function ThemeProvider({
@@ -41,7 +25,6 @@ export function ThemeProvider({
       enableSystem
       {...props}
     >
-      <ThemeClassSetter />
       {children}
     </NextThemeProvider>
   )

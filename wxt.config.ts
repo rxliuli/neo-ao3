@@ -23,7 +23,7 @@ export default defineConfig({
       description:
         'A template for WXT, a WebExtension framework based on Vite and React',
       permissions: ['storage'],
-      host_permissions: ['<all_urls>'],
+      host_permissions: [],
       author: {
         email: 'rxliuli@gmail.com',
       },

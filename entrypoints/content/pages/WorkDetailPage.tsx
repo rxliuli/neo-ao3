@@ -1,8 +1,13 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseWorkDetail } from '@/lib/ao3/parseWorkDetail'
+import { parseWorkComments } from '@/lib/ao3/parseComments'
 import { Badge } from '@/components/ui/badge'
 import type { Chapter, WorkDetail } from '@/lib/ao3/types'
-import { ChapterPagination } from '../components/PaginationControls'
+import {
+  ChapterPagination,
+  PaginationControls,
+} from '../components/PaginationControls'
+import { CommentThread } from '../components/CommentThread'
 
 function ChapterSection({ chapter }: { chapter: Chapter }) {
   return (
@@ -140,8 +145,59 @@ function CollapsibleTags({ work }: { work: WorkDetail }) {
 }
 
 
-export function WorkDetailPage({ doc }: { doc: Document }) {
+export function WorkDetailPage({
+  doc,
+  url,
+}: {
+  doc: Document
+  url: string
+}) {
   const work = useMemo(() => parseWorkDetail(doc), [doc])
+  const initialComments = useMemo(() => parseWorkComments(doc), [doc])
+
+  const [comments, setComments] = useState(initialComments)
+  const [commentsVisible, setCommentsVisible] = useState(
+    initialComments.comments.length > 0,
+  )
+  const [loadingComments, setLoadingComments] = useState(false)
+
+  const commentPaginationUrl = useMemo(() => {
+    const u = new URL(url)
+    u.searchParams.set('show_comments', 'true')
+    u.hash = ''
+    return u.toString()
+  }, [url])
+
+  async function handleShowComments() {
+    setLoadingComments(true)
+    try {
+      const u = new URL(url)
+      u.searchParams.set('show_comments', 'true')
+      const response = await fetch(u.toString())
+      const html = await response.text()
+      const newDoc = new DOMParser().parseFromString(html, 'text/html')
+      const newComments = parseWorkComments(newDoc)
+      setComments(newComments)
+      setCommentsVisible(true)
+      u.hash = ''
+      history.replaceState(null, '', u.toString())
+    } finally {
+      setLoadingComments(false)
+    }
+  }
+
+  function handleToggleComments() {
+    const next = !commentsVisible
+    setCommentsVisible(next)
+    const u = new URL(window.location.href)
+    if (next) {
+      u.searchParams.set('show_comments', 'true')
+    } else {
+      u.searchParams.delete('show_comments')
+    }
+    u.hash = ''
+    history.replaceState(null, '', u.toString())
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -234,6 +290,47 @@ export function WorkDetailPage({ doc }: { doc: Document }) {
           chapterUrls={work.chapterNav.chapterUrls}
         />
       )}
+
+      {/* Comments */}
+      <section id="comments" className="space-y-4 border-t pt-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">
+            Comments
+            {work.stats.comments > 0 && (
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                ({work.stats.comments.toLocaleString()})
+              </span>
+            )}
+          </h2>
+          {work.stats.comments > 0 && (
+            <button
+              onClick={
+                comments.comments.length > 0
+                  ? handleToggleComments
+                  : handleShowComments
+              }
+              disabled={loadingComments}
+              className="text-sm text-primary hover:underline disabled:opacity-50"
+            >
+              {loadingComments
+                ? 'Loading...'
+                : commentsVisible && comments.comments.length > 0
+                  ? 'Hide'
+                  : 'Show'}
+            </button>
+          )}
+        </div>
+
+        {commentsVisible && comments.comments.length > 0 && (
+          <>
+            <CommentThread comments={comments.comments} />
+            <PaginationControls
+              pagination={comments.pagination}
+              url={commentPaginationUrl}
+            />
+          </>
+        )}
+      </section>
     </div>
   )
 }

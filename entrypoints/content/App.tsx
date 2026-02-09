@@ -12,6 +12,7 @@ import { UserHistoryPage } from './pages/UserHistoryPage'
 import { UserInboxPage } from './pages/UserInboxPage'
 import { UserStatsPage } from './pages/UserStatsPage'
 import { LoginPage } from './pages/LoginPage'
+import { CommentPage } from './pages/CommentPage'
 import { NavigationProvider } from './navigation'
 import { CurrentUserProvider } from './auth'
 import { parseCurrentUser, type CurrentUser } from '@/lib/ao3/parseLoginForm'
@@ -187,7 +188,10 @@ export function App(props: {
             <WorkListPage key={currentUrl} doc={doc} url={currentUrl} />
           )}
           {route.type === 'work-detail' && doc && (
-            <WorkDetailPage key={currentUrl} doc={doc} />
+            <WorkDetailPage key={currentUrl} doc={doc} url={currentUrl} />
+          )}
+          {route.type === 'comment-show' && doc && (
+            <CommentPage key={currentUrl} doc={doc} />
           )}
           {route.type === 'fandom-list' && doc && (
             <FandomListPage key={currentUrl} doc={doc} />

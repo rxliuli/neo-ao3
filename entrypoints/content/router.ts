@@ -2,6 +2,7 @@ export type Route =
   | { type: 'home' }
   | { type: 'work-list' }
   | { type: 'work-detail'; workId: string }
+  | { type: 'comment-show'; workId: string; commentId: string }
   | { type: 'fandom-list' }
   | { type: 'user-bookmarks' }
   | { type: 'user-preferences' }
@@ -23,6 +24,12 @@ export function matchRoute(url: string): Route | null {
   // Home page
   if (path === '/') {
     return { type: 'home' }
+  }
+
+  // Single comment: /works/{id}/comments/{commentId}
+  const commentMatch = path.match(/^\/works\/(\d+)\/comments\/(\d+)$/)
+  if (commentMatch) {
+    return { type: 'comment-show', workId: commentMatch[1], commentId: commentMatch[2] }
   }
 
   // Work detail: /works/{id} or /works/{id}/chapters/{chapterId}

@@ -3,6 +3,7 @@ export type Route =
   | { type: 'work-list' }
   | { type: 'work-detail'; workId: string }
   | { type: 'fandom-list' }
+  | { type: 'user-profile' }
 
 export function matchRoute(url: string): Route | null {
   const u = new URL(url)
@@ -24,14 +25,23 @@ export function matchRoute(url: string): Route | null {
     return { type: 'work-detail', workId: workDetailMatch[1] }
   }
 
-  // Work list: /tags/*/works or /works/search
-  if (/^\/tags\/[^/]+\/works/.test(path) || /^\/works\/search/.test(path)) {
+  // Work list: /tags/*/works, /works/search, /users/*/works, /users/*/pseuds/*/works
+  if (
+    /^\/tags\/[^/]+\/works/.test(path) ||
+    /^\/works\/search/.test(path) ||
+    /^\/users\/[^/]+\/(pseuds\/[^/]+\/)?works/.test(path)
+  ) {
     return { type: 'work-list' }
   }
 
   // Fandom list: /media/*/fandoms
   if (/^\/media\/[^/]+\/fandoms/.test(path)) {
     return { type: 'fandom-list' }
+  }
+
+  // User profile: /users/{name}, /users/{name}/profile, /users/{name}/pseuds/{pseudo}[/profile]
+  if (/^\/users\/[^/]+(\/pseuds\/[^/]+)?(\/profile)?$/.test(path)) {
+    return { type: 'user-profile' }
   }
 
   return null

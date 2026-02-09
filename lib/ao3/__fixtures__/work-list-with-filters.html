@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head><title>Works | AO3</title></head>
+<body>
+<div id="main" class="works-index filtered region">
+  <h2 class="heading">1 - 20 of 5,000 Works in Supernatural</h2>
+
+  <!-- Filter sidebar form (tag pages only) -->
+  <form id="work-filters" accept-charset="UTF-8" method="get" action="/tags/Supernatural/works">
+
+    <h4 class="heading">Include</h4>
+    <fieldset>
+      <dl>
+        <dt class="landmark heading">Include Categories</dt>
+        <dd id="include_category_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_work_search[category_ids][]" value="23" /> M/M (3500)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[category_ids][]" value="22" /> F/M (1200)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[category_ids][]" value="21" /> Gen (800)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Fandoms</dt>
+        <dd id="include_fandom_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_work_search[fandom_ids][]" value="27" /> Supernatural (5000)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[fandom_ids][]" value="143" /> Marvel Cinematic Universe (150)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[fandom_ids][]" value="289" /> Sherlock (TV) (75)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Characters</dt>
+        <dd id="include_character_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_work_search[character_ids][]" value="501" /> Dean Winchester (4200)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[character_ids][]" value="502" /> Sam Winchester (3100)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[character_ids][]" value="503" /> Castiel (2800)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[character_ids][]" value="504" /> Bobby Singer (500)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Relationships</dt>
+        <dd id="include_relationship_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_work_search[relationship_ids][]" value="601" /> Castiel/Dean Winchester (2500)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[relationship_ids][]" value="602" /> Dean Winchester/Sam Winchester (800)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Additional Tags</dt>
+        <dd id="include_freeform_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_work_search[freeform_ids][]" value="701" /> Angst (1500)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[freeform_ids][]" value="702" /> Fluff (1200)</label></li>
+            <li><label><input type="checkbox" name="include_work_search[freeform_ids][]" value="703" /> Hurt/Comfort (900)</label></li>
+          </ul>
+        </dd>
+      </dl>
+    </fieldset>
+
+    <h4 class="heading">Exclude</h4>
+    <fieldset>
+      <dl>
+        <dt class="landmark heading">Exclude Ratings</dt>
+        <dd id="exclude_rating_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[rating_ids][]" value="13" /> Explicit (1800)</label></li>
+            <li><label><input type="checkbox" name="exclude_work_search[rating_ids][]" value="12" /> Mature (900)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Warnings</dt>
+        <dd id="exclude_warning_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[archive_warning_ids][]" value="17" /> Graphic Depictions Of Violence (600)</label></li>
+            <li><label><input type="checkbox" name="exclude_work_search[archive_warning_ids][]" value="18" /> Major Character Death (400)</label></li>
+            <li><label><input type="checkbox" name="exclude_work_search[archive_warning_ids][]" value="19" /> Rape/Non-Con (300)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Categories</dt>
+        <dd id="exclude_category_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[category_ids][]" value="23" /> M/M (3500)</label></li>
+            <li><label><input type="checkbox" name="exclude_work_search[category_ids][]" value="22" /> F/M (1200)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Fandoms</dt>
+        <dd id="exclude_fandom_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[fandom_ids][]" value="143" /> Marvel Cinematic Universe (150)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Characters</dt>
+        <dd id="exclude_character_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[character_ids][]" value="504" /> Bobby Singer (500)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Relationships</dt>
+        <dd id="exclude_relationship_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[relationship_ids][]" value="602" /> Dean Winchester/Sam Winchester (800)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Additional Tags</dt>
+        <dd id="exclude_freeform_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_work_search[freeform_ids][]" value="701" /> Angst (1500)</label></li>
+          </ul>
+        </dd>
+      </dl>
+    </fieldset>
+
+    <fieldset>
+      <legend>More Options</legend>
+      <dl>
+        <dt><label for="work_search_other_tag_names">Other tag names</label></dt>
+        <dd><input type="text" name="work_search[other_tag_names]" id="work_search_other_tag_names" /></dd>
+        <dt><label for="work_search_excluded_tag_names">Excluded tag names</label></dt>
+        <dd><input type="text" name="work_search[excluded_tag_names]" id="work_search_excluded_tag_names" /></dd>
+        <dt>Crossovers</dt>
+        <dd>
+          <label><input type="radio" name="work_search[crossover]" value="" checked="checked" /> Include crossovers</label>
+          <label><input type="radio" name="work_search[crossover]" value="F" /> Exclude crossovers</label>
+          <label><input type="radio" name="work_search[crossover]" value="T" /> Only crossovers</label>
+        </dd>
+        <dt>Date Updated</dt>
+        <dd>
+          <input type="text" name="work_search[date_from]" id="work_search_date_from" placeholder="YYYY-MM-DD" />
+          <span>to</span>
+          <input type="text" name="work_search[date_to]" id="work_search_date_to" placeholder="YYYY-MM-DD" />
+        </dd>
+      </dl>
+    </fieldset>
+
+    <p class="submit actions">
+      <input type="submit" name="commit" value="Sort and Filter" />
+    </p>
+  </form>
+
+  <ol class="pagination actions pagy" role="navigation">
+    <li class="previous"><span class="disabled">&larr; Previous</span></li>
+    <li><a class="current">1</a></li>
+    <li><a href="/tags/Supernatural/works?page=2">2</a></li>
+    <li class="next"><a href="/tags/Supernatural/works?page=2">Next &rarr;</a></li>
+  </ol>
+
+  <ol class="work index group">
+    <li id="work_20001" class="work blurb group" role="article">
+      <div class="header module">
+        <h4 class="heading">
+          <a href="/works/20001">Carry On</a>
+          by
+          <a rel="author" href="/users/spnfan/pseuds/spnfan">spnfan</a>
+        </h4>
+        <h5 class="fandoms heading">
+          <span class="landmark">Fandoms:</span>
+          <a class="tag" href="/tags/Supernatural/works">Supernatural</a>
+        </h5>
+        <ul class="required-tags">
+          <li><a class="help symbol question modal" title="Symbols key" href="/help/symbols-key.html"><span class="rating-explicit rating" title="Explicit">Explicit</span></a></li>
+          <li><a class="help symbol question modal" title="Symbols key" href="/help/symbols-key.html"><span class="warning-no warnings" title="No Archive Warnings Apply">No Archive Warnings Apply</span></a></li>
+          <li><a class="help symbol question modal" title="Symbols key" href="/help/symbols-key.html"><span class="category-slash category" title="M/M">M/M</span></a></li>
+          <li><a class="help symbol question modal" title="Symbols key" href="/help/symbols-key.html"><span class="complete-yes iswip" title="Complete Work">Complete Work</span></a></li>
+        </ul>
+        <p class="datetime">01 Jan 2025</p>
+      </div>
+
+      <ul class="tags commas">
+        <li class="relationships"><a class="tag" href="/tags/Castiel*s*Dean%20Winchester/works">Castiel/Dean Winchester</a></li>
+        <li class="characters"><a class="tag" href="/tags/Dean%20Winchester/works">Dean Winchester</a></li>
+        <li class="characters"><a class="tag" href="/tags/Castiel/works">Castiel</a></li>
+        <li class="freeforms"><a class="tag" href="/tags/Angst/works">Angst</a></li>
+      </ul>
+
+      <h6 class="landmark heading">Summary</h6>
+      <blockquote class="userstuff summary">
+        <p>A Supernatural story.</p>
+      </blockquote>
+
+      <dl class="stats">
+        <dt class="language">Language:</dt>
+        <dd class="language">English</dd>
+        <dt class="words">Words:</dt>
+        <dd class="words">15,000</dd>
+        <dt class="chapters">Chapters:</dt>
+        <dd class="chapters">5/5</dd>
+        <dt class="kudos">Kudos:</dt>
+        <dd class="kudos"><a href="/works/20001#kudos">200</a></dd>
+        <dt class="hits">Hits:</dt>
+        <dd class="hits">5,000</dd>
+      </dl>
+    </li>
+  </ol>
+
+  <ol class="pagination actions pagy" role="navigation">
+    <li class="previous"><span class="disabled">&larr; Previous</span></li>
+    <li><a class="current">1</a></li>
+    <li><a href="/tags/Supernatural/works?page=2">2</a></li>
+    <li class="next"><a href="/tags/Supernatural/works?page=2">Next &rarr;</a></li>
+  </ol>
+</div>
+</body>
+</html>

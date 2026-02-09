@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage'
 import { WorkListPage } from './pages/WorkListPage'
 import { WorkDetailPage } from './pages/WorkDetailPage'
 import { FandomListPage } from './pages/FandomListPage'
+import { UserProfilePage } from './pages/UserProfilePage'
 import { NavigationProvider } from './navigation'
 import { matchRoute, type Route } from './router'
 
@@ -155,6 +156,9 @@ export function App(props: {
         )}
         {route.type === 'fandom-list' && doc && (
           <FandomListPage key={currentUrl} doc={doc} />
+        )}
+        {route.type === 'user-profile' && doc && (
+          <UserProfilePage key={currentUrl} doc={doc} />
         )}
       </NavigationProvider>
     </ThemeProvider>

@@ -4,14 +4,26 @@ import {
   parseFilterParams,
   buildFilterUrl,
   defaultFilterState,
+  isTagPage,
   type FilterState,
 } from '@/lib/ao3/parseFilterParams'
+import {
+  parseFilterSidebar,
+  type FilterSidebar,
+  type TagOption,
+} from '@/lib/ao3/parseFilterSidebar'
 import type { WorkBlurb, Pagination } from '@/lib/ao3/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { MultiSelect } from '@/components/ui/multi-select'
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -21,7 +33,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { ArrowUpDown, SlidersHorizontal } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { ArrowUpDown, SlidersHorizontal, ChevronRight, CalendarIcon } from 'lucide-react'
+import { format, parse } from 'date-fns'
 import { useNavigate } from '../navigation'
 
 // --- Constants ---
@@ -83,6 +102,12 @@ const LANGUAGE_OPTIONS = [
   { label: 'Português', value: 'pt' },
   { label: 'Русский', value: 'ru' },
   { label: '한국어', value: 'ko' },
+]
+
+const CROSSOVER_OPTIONS = [
+  { label: 'Include crossovers', value: '' },
+  { label: 'Exclude crossovers', value: 'F' },
+  { label: 'Only crossovers', value: 'T' },
 ]
 
 // --- Sub-components ---
@@ -216,30 +241,93 @@ function WorkCard({ work }: { work: WorkBlurb }) {
   )
 }
 
-function CheckboxGroup(props: {
-  options: { label: string; value: string }[]
+function TagCheckboxGroup(props: {
+  label: string
+  options: TagOption[]
   selected: string[]
   onChange: (selected: string[]) => void
 }) {
+  if (props.options.length === 0) return null
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-1">
-      {props.options.map((opt) => (
-        <label key={opt.value} className="flex items-center gap-1.5 text-sm">
-          <input
-            type="checkbox"
-            checked={props.selected.includes(opt.value)}
-            onChange={(e) => {
-              if (e.target.checked) {
-                props.onChange([...props.selected, opt.value])
-              } else {
-                props.onChange(props.selected.filter((v) => v !== opt.value))
-              }
-            }}
-          />
-          {opt.label}
-        </label>
-      ))}
+    <div className="space-y-1.5">
+      <Label>{props.label}</Label>
+      <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
+        {props.options.map((opt) => (
+          <label key={opt.id} className="flex items-center gap-1.5 text-sm">
+            <input
+              type="checkbox"
+              checked={props.selected.includes(opt.id)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  props.onChange([...props.selected, opt.id])
+                } else {
+                  props.onChange(props.selected.filter((v) => v !== opt.id))
+                }
+              }}
+            />
+            <span className="truncate">{opt.name}</span>
+            <span className="text-muted-foreground ml-auto shrink-0">({opt.count})</span>
+          </label>
+        ))}
+      </div>
     </div>
+  )
+}
+
+function DatePicker(props: {
+  value: string // "YYYY-MM-DD" or ""
+  onChange: (value: string) => void
+  placeholder?: string
+}) {
+  const date = props.value
+    ? parse(props.value, 'yyyy-MM-dd', new Date())
+    : undefined
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          data-empty={!props.value}
+          className="h-8 w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+        >
+          <CalendarIcon className="size-4" />
+          {date ? format(date, 'yyyy-MM-dd') : <span>{props.placeholder ?? 'Pick a date'}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={(d) => props.onChange(d ? format(d, 'yyyy-MM-dd') : '')}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function CollapsibleSection(props: {
+  title: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(props.defaultOpen ?? false)
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button className="flex items-center gap-1 text-sm font-medium hover:text-foreground text-muted-foreground w-full py-1">
+          <ChevronRight
+            className={`size-4 transition-transform ${open ? 'rotate-90' : ''}`}
+          />
+          {props.title}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="pl-5 space-y-3 pt-2 pb-1">
+          {props.children}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -248,8 +336,10 @@ function FilterPanel(props: {
   onChange: (filters: FilterState) => void
   onApply: () => void
   onReset: () => void
+  sidebar: FilterSidebar | null
+  tagPage: boolean
 }) {
-  const { filters, onChange } = props
+  const { filters, onChange, sidebar } = props
 
   function update(partial: Partial<FilterState>) {
     onChange({ ...filters, ...partial })
@@ -257,6 +347,7 @@ function FilterPanel(props: {
 
   return (
     <div className="border rounded-md p-4 space-y-4">
+      {/* Basic Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label>Rating</Label>
@@ -322,22 +413,34 @@ function FilterPanel(props: {
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label>Warnings</Label>
-        <CheckboxGroup
-          options={WARNING_OPTIONS}
-          selected={filters.warningIds}
-          onChange={(warningIds) => update({ warningIds })}
-        />
-      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label>Warnings</Label>
+          <MultiSelect
+            options={WARNING_OPTIONS}
+            defaultValue={filters.warningIds}
+            onValueChange={(warningIds) => update({ warningIds })}
+            placeholder="Any"
+            searchable={false}
+            hideSelectAll
+            maxCount={1}
+            popoverClassName="!w-(--radix-popover-trigger-width) !min-w-0"
+          />
+        </div>
 
-      <div className="space-y-1.5">
-        <Label>Categories</Label>
-        <CheckboxGroup
-          options={CATEGORY_OPTIONS}
-          selected={filters.categoryIds}
-          onChange={(categoryIds) => update({ categoryIds })}
-        />
+        <div className="space-y-1.5">
+          <Label>Categories</Label>
+          <MultiSelect
+            options={CATEGORY_OPTIONS}
+            defaultValue={filters.categoryIds}
+            onValueChange={(categoryIds) => update({ categoryIds })}
+            placeholder="Any"
+            searchable={false}
+            hideSelectAll
+            maxCount={2}
+            popoverClassName="!w-(--radix-popover-trigger-width) !min-w-0"
+          />
+        </div>
       </div>
 
       <div className="space-y-1.5">
@@ -350,6 +453,146 @@ function FilterPanel(props: {
           className="h-8 max-w-sm"
         />
       </div>
+
+      {/* Include Tags */}
+      <CollapsibleSection title="Include Tags">
+        {sidebar && (
+          <>
+            <TagCheckboxGroup
+              label="Fandoms"
+              options={sidebar.includeFandoms}
+              selected={filters.includeFandomIds}
+              onChange={(includeFandomIds) => update({ includeFandomIds })}
+            />
+            <TagCheckboxGroup
+              label="Characters"
+              options={sidebar.includeCharacters}
+              selected={filters.includeCharacterIds}
+              onChange={(includeCharacterIds) => update({ includeCharacterIds })}
+            />
+            <TagCheckboxGroup
+              label="Relationships"
+              options={sidebar.includeRelationships}
+              selected={filters.includeRelationshipIds}
+              onChange={(includeRelationshipIds) => update({ includeRelationshipIds })}
+            />
+            <TagCheckboxGroup
+              label="Additional Tags"
+              options={sidebar.includeFreeforms}
+              selected={filters.includeFreeformIds}
+              onChange={(includeFreeformIds) => update({ includeFreeformIds })}
+            />
+          </>
+        )}
+        <div className="space-y-1.5">
+          <Label>Other tags to include</Label>
+          <Input
+            type="text"
+            placeholder="Tag names, comma separated"
+            value={filters.otherTagsToInclude}
+            onChange={(e) => update({ otherTagsToInclude: e.target.value })}
+            className="h-8"
+          />
+        </div>
+      </CollapsibleSection>
+
+      {/* Exclude Tags */}
+      <CollapsibleSection title="Exclude Tags">
+        {sidebar && (
+          <>
+            <TagCheckboxGroup
+              label="Ratings"
+              options={sidebar.excludeRatings}
+              selected={filters.excludeRatingIds}
+              onChange={(excludeRatingIds) => update({ excludeRatingIds })}
+            />
+            <TagCheckboxGroup
+              label="Warnings"
+              options={sidebar.excludeWarnings}
+              selected={filters.excludeWarningIds}
+              onChange={(excludeWarningIds) => update({ excludeWarningIds })}
+            />
+            <TagCheckboxGroup
+              label="Categories"
+              options={sidebar.excludeCategories}
+              selected={filters.excludeCategoryIds}
+              onChange={(excludeCategoryIds) => update({ excludeCategoryIds })}
+            />
+            <TagCheckboxGroup
+              label="Fandoms"
+              options={sidebar.excludeFandoms}
+              selected={filters.excludeFandomIds}
+              onChange={(excludeFandomIds) => update({ excludeFandomIds })}
+            />
+            <TagCheckboxGroup
+              label="Characters"
+              options={sidebar.excludeCharacters}
+              selected={filters.excludeCharacterIds}
+              onChange={(excludeCharacterIds) => update({ excludeCharacterIds })}
+            />
+            <TagCheckboxGroup
+              label="Relationships"
+              options={sidebar.excludeRelationships}
+              selected={filters.excludeRelationshipIds}
+              onChange={(excludeRelationshipIds) => update({ excludeRelationshipIds })}
+            />
+            <TagCheckboxGroup
+              label="Additional Tags"
+              options={sidebar.excludeFreeforms}
+              selected={filters.excludeFreeformIds}
+              onChange={(excludeFreeformIds) => update({ excludeFreeformIds })}
+            />
+          </>
+        )}
+        <div className="space-y-1.5">
+          <Label>Other tags to exclude</Label>
+          <Input
+            type="text"
+            placeholder="Tag names, comma separated"
+            value={filters.otherTagsToExclude}
+            onChange={(e) => update({ otherTagsToExclude: e.target.value })}
+            className="h-8"
+          />
+        </div>
+      </CollapsibleSection>
+
+      {/* More Options */}
+      <CollapsibleSection title="More Options">
+        <div className="space-y-1.5">
+          <Label>Crossovers</Label>
+          <Select
+            value={filters.crossover}
+            onChange={(e) => update({ crossover: e.target.value })}
+          >
+            {CROSSOVER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Date Updated</Label>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <DatePicker
+                value={filters.dateFrom}
+                onChange={(dateFrom) => update({ dateFrom })}
+                placeholder="From"
+              />
+            </div>
+            <span className="text-muted-foreground shrink-0">to</span>
+            <div className="flex-1 min-w-0">
+              <DatePicker
+                value={filters.dateTo}
+                onChange={(dateTo) => update({ dateTo })}
+                placeholder="To"
+              />
+            </div>
+          </div>
+        </div>
+      </CollapsibleSection>
 
       <div className="flex gap-2">
         <Button size="sm" onClick={props.onApply}>
@@ -435,6 +678,8 @@ export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
   const navigate = useNavigate()
   const data = useMemo(() => parseWorkList(doc), [doc])
   const initialFilters = useMemo(() => parseFilterParams(url), [url])
+  const sidebar = useMemo(() => parseFilterSidebar(doc), [doc])
+  const tagPage = useMemo(() => isTagPage(new URL(url).pathname), [url])
 
   const [filters, setFilters] = useState<FilterState>(initialFilters)
   const [showFilters, setShowFilters] = useState(false)
@@ -500,6 +745,8 @@ export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
           onChange={setFilters}
           onApply={handleApplyFilters}
           onReset={handleResetFilters}
+          sidebar={sidebar}
+          tagPage={tagPage}
         />
       )}
 

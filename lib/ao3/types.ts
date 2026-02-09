@@ -64,6 +64,13 @@ export interface Chapter {
   endNotes?: string
 }
 
+export interface ChapterNav {
+  prevUrl?: string
+  nextUrl?: string
+  currentIndex: number
+  totalChapters: number
+}
+
 /** Full work detail from individual work pages */
 export interface WorkDetail {
   id: string
@@ -83,4 +90,5 @@ export interface WorkDetail {
   endNotes?: string
   series: SeriesInfo[]
   chapters: Chapter[]
+  chapterNav?: ChapterNav
 }

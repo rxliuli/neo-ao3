@@ -28,7 +28,7 @@ function toISODate(raw: string): string {
   return `${m[3]}-${MONTHS[m[2]] ?? '01'}-${m[1]}`
 }
 
-function parseWorkBlurb(el: Element): WorkBlurb {
+export function parseWorkBlurb(el: Element): WorkBlurb {
   const id = el.id.replace('work_', '')
 
   // Title

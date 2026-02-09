@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseWorkDetail } from '@/lib/ao3/parseWorkDetail'
 import { Badge } from '@/components/ui/badge'
-import type { Chapter } from '@/lib/ao3/types'
+import { Button } from '@/components/ui/button'
+import type { Chapter, ChapterNav, WorkDetail } from '@/lib/ao3/types'
 
 function ChapterSection({ chapter }: { chapter: Chapter }) {
   return (
@@ -56,6 +57,116 @@ function ChapterSection({ chapter }: { chapter: Chapter }) {
   )
 }
 
+function CollapsibleTags({ work }: { work: WorkDetail }) {
+  const [expanded, setExpanded] = useState(false)
+  const tagsRef = useRef<HTMLDivElement>(null)
+  const [hiddenCount, setHiddenCount] = useState(0)
+
+  const allTags = useMemo(
+    () => [
+      { label: work.rating, variant: 'default' as const },
+      ...work.categories.map((c) => ({ label: c, variant: 'secondary' as const })),
+      ...work.fandoms.map((f) => ({ label: f, variant: 'secondary' as const })),
+      ...work.tags.relationships.map((t) => ({ label: t, variant: 'outline' as const })),
+      ...work.tags.characters.map((t) => ({ label: t, variant: 'outline' as const })),
+      ...work.tags.freeforms.map((t) => ({ label: t, variant: 'outline' as const })),
+    ],
+    [work],
+  )
+
+  useLayoutEffect(() => {
+    const el = tagsRef.current
+    if (!el) return
+
+    if (expanded) {
+      el.style.maxHeight = ''
+      el.style.overflow = ''
+      setHiddenCount(0)
+      return
+    }
+
+    el.style.maxHeight = ''
+    el.style.overflow = ''
+
+    const children = Array.from(el.children) as HTMLElement[]
+    if (children.length === 0) return
+
+    const firstTop = children[0].offsetTop
+    const rowH = children[0].offsetHeight
+    const gap = parseFloat(getComputedStyle(el).rowGap) || 4
+    const cutoffTop = firstTop + 2 * (rowH + gap)
+
+    let hidden = 0
+    for (const child of children) {
+      if (child.offsetTop >= cutoffTop) hidden++
+    }
+
+    if (hidden > 0) {
+      el.style.maxHeight = `${2 * rowH + gap}px`
+      el.style.overflow = 'hidden'
+    }
+    setHiddenCount(hidden)
+  }, [allTags, expanded])
+
+  if (allTags.length === 0) return null
+
+  return (
+    <div>
+      <div ref={tagsRef} className="flex flex-wrap gap-1">
+        {allTags.map((tag) => (
+          <a
+            key={tag.label}
+            href={`/tags/${encodeURIComponent(tag.label)}/works`}
+          >
+            <Badge
+              variant={tag.variant}
+              className="text-xs hover:bg-accent"
+            >
+              {tag.label}
+            </Badge>
+          </a>
+        ))}
+      </div>
+      {hiddenCount > 0 && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          className="mt-1 text-xs text-muted-foreground hover:text-foreground"
+        >
+          +{hiddenCount} more tags
+        </button>
+      )}
+    </div>
+  )
+}
+
+function ChapterNavigation({ nav }: { nav: ChapterNav }) {
+  return (
+    <nav className="flex items-center justify-between border-t pt-6">
+      <div>
+        {nav.prevUrl ? (
+          <Button variant="outline" asChild>
+            <a href={nav.prevUrl}>&larr; Previous Chapter</a>
+          </Button>
+        ) : (
+          <div />
+        )}
+      </div>
+      <span className="text-sm text-muted-foreground">
+        {nav.currentIndex + 1} / {nav.totalChapters}
+      </span>
+      <div>
+        {nav.nextUrl ? (
+          <Button variant="outline" asChild>
+            <a href={nav.nextUrl}>Next Chapter &rarr;</a>
+          </Button>
+        ) : (
+          <div />
+        )}
+      </div>
+    </nav>
+  )
+}
+
 export function WorkDetailPage({ doc }: { doc: Document }) {
   const work = useMemo(() => parseWorkDetail(doc), [doc])
 
@@ -77,41 +188,8 @@ export function WorkDetailPage({ doc }: { doc: Document }) {
         </p>
       </header>
 
-      {/* Metadata */}
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-1">
-          <Badge>{work.rating}</Badge>
-          {work.categories.map((c) => (
-            <Badge key={c} variant="secondary">
-              {c}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {work.fandoms.map((f) => (
-            <Badge key={f} variant="secondary">
-              {f}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {work.tags.relationships.map((t) => (
-            <Badge key={t} variant="outline" className="text-xs">
-              {t}
-            </Badge>
-          ))}
-          {work.tags.characters.map((t) => (
-            <Badge key={t} variant="outline" className="text-xs">
-              {t}
-            </Badge>
-          ))}
-          {work.tags.freeforms.map((t) => (
-            <Badge key={t} variant="outline" className="text-xs">
-              {t}
-            </Badge>
-          ))}
-        </div>
-      </div>
+      {/* Tags */}
+      <CollapsibleTags work={work} />
 
       {/* Stats */}
       <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
@@ -174,6 +252,9 @@ export function WorkDetailPage({ doc }: { doc: Document }) {
           />
         </details>
       )}
+
+      {/* Chapter navigation */}
+      {work.chapterNav && <ChapterNavigation nav={work.chapterNav} />}
     </div>
   )
 }

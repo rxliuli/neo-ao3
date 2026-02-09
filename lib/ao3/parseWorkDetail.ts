@@ -1,6 +1,7 @@
 import type {
   Author,
   Chapter,
+  ChapterNav,
   SeriesInfo,
   WorkDetail,
   WorkStats,
@@ -111,6 +112,9 @@ export function parseWorkDetail(doc: Document): WorkDetail {
   // Chapters
   const chapters = parseChapters(doc)
 
+  // Chapter navigation (prev/next)
+  const chapterNav = parseChapterNav(doc)
+
   return {
     id,
     title,
@@ -129,6 +133,35 @@ export function parseWorkDetail(doc: Document): WorkDetail {
     endNotes,
     series,
     chapters,
+    chapterNav,
+  }
+}
+
+function parseChapterNav(doc: Document): ChapterNav | undefined {
+  const select = doc.querySelector('select#selected_id')
+  if (!select) return undefined
+
+  const options = Array.from((select as HTMLSelectElement).options)
+  if (options.length <= 1) return undefined
+
+  const selectedIndex = options.findIndex((o) => o.selected)
+  const prevOption = selectedIndex > 0 ? options[selectedIndex - 1] : undefined
+  const nextOption =
+    selectedIndex < options.length - 1 ? options[selectedIndex + 1] : undefined
+
+  // Build URLs from the form action pattern: /works/{id}/chapters/{chapterId}
+  const form = select.closest('form')
+  const actionBase = form?.getAttribute('action')?.replace(/\/chapters\/\d+/, '') ?? ''
+
+  return {
+    prevUrl: prevOption
+      ? `${actionBase}/chapters/${prevOption.value}`
+      : undefined,
+    nextUrl: nextOption
+      ? `${actionBase}/chapters/${nextOption.value}`
+      : undefined,
+    currentIndex: selectedIndex,
+    totalChapters: options.length,
   }
 }
 

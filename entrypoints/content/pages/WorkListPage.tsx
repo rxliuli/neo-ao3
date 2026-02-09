@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseWorkList } from '@/lib/ao3/parseWorkList'
 import {
   parseFilterParams,
@@ -12,6 +12,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import { ArrowUpDown, SlidersHorizontal } from 'lucide-react'
 import { useNavigate } from '../navigation'
 
 // --- Constants ---
@@ -78,6 +88,55 @@ const LANGUAGE_OPTIONS = [
 // --- Sub-components ---
 
 function WorkCard({ work }: { work: WorkBlurb }) {
+  const [expanded, setExpanded] = useState(false)
+  const tagsRef = useRef<HTMLDivElement>(null)
+  const [hiddenCount, setHiddenCount] = useState(0)
+
+  const allTags = useMemo(
+    () => [
+      ...work.fandoms.map((f) => ({ label: f, isFandom: true })),
+      ...work.tags.relationships.map((t) => ({ label: t, isFandom: false })),
+      ...work.tags.characters.map((t) => ({ label: t, isFandom: false })),
+      ...work.tags.freeforms.map((t) => ({ label: t, isFandom: false })),
+    ],
+    [work],
+  )
+
+  useLayoutEffect(() => {
+    const el = tagsRef.current
+    if (!el) return
+
+    if (expanded) {
+      el.style.maxHeight = ''
+      el.style.overflow = ''
+      setHiddenCount(0)
+      return
+    }
+
+    // Remove constraints to measure true layout
+    el.style.maxHeight = ''
+    el.style.overflow = ''
+
+    const children = Array.from(el.children) as HTMLElement[]
+    if (children.length === 0) return
+
+    const firstTop = children[0].offsetTop
+    const rowH = children[0].offsetHeight
+    const gap = parseFloat(getComputedStyle(el).rowGap) || 4
+    const cutoffTop = firstTop + 2 * (rowH + gap)
+
+    let hidden = 0
+    for (const child of children) {
+      if (child.offsetTop >= cutoffTop) hidden++
+    }
+
+    if (hidden > 0) {
+      el.style.maxHeight = `${2 * rowH + gap}px`
+      el.style.overflow = 'hidden'
+    }
+    setHiddenCount(hidden)
+  }, [allTags, expanded])
+
   return (
     <article className="border-b py-4 space-y-2">
       <div className="space-y-1">
@@ -102,31 +161,33 @@ function WorkCard({ work }: { work: WorkBlurb }) {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-1">
-        {work.fandoms.map((f) => (
-          <Badge key={f} variant="secondary">
-            {f}
-          </Badge>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-1">
-        {work.tags.relationships.map((t) => (
-          <Badge key={t} variant="outline" className="text-xs">
-            {t}
-          </Badge>
-        ))}
-        {work.tags.characters.map((t) => (
-          <Badge key={t} variant="outline" className="text-xs">
-            {t}
-          </Badge>
-        ))}
-        {work.tags.freeforms.map((t) => (
-          <Badge key={t} variant="outline" className="text-xs">
-            {t}
-          </Badge>
-        ))}
-      </div>
+      {allTags.length > 0 && (
+        <div>
+          <div ref={tagsRef} className="flex flex-wrap gap-1">
+            {allTags.map((tag) => (
+              <a
+                key={tag.label}
+                href={`/tags/${encodeURIComponent(tag.label)}/works`}
+              >
+                <Badge
+                  variant={tag.isFandom ? 'secondary' : 'outline'}
+                  className="text-xs hover:bg-accent"
+                >
+                  {tag.label}
+                </Badge>
+              </a>
+            ))}
+          </div>
+          {hiddenCount > 0 && !expanded && (
+            <button
+              onClick={() => setExpanded(true)}
+              className="mt-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              +{hiddenCount} more tags
+            </button>
+          )}
+        </div>
+      )}
 
       {work.summary && (
         <div
@@ -395,34 +456,40 @@ export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
       {/* Toolbar: sort + filter toggle */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Label className="text-sm text-muted-foreground shrink-0">
-            Sort by
-          </Label>
-          <Select
-            value={filters.sortColumn}
-            onChange={(e) => handleSortChange(e.target.value)}
-            className="h-8 w-auto"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
+          Page {data.pagination.currentPage} of {data.pagination.totalPages}
+        </span>
+        <div className="flex items-center gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8">
+                <ArrowUpDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={filters.sortColumn}
+                onValueChange={handleSortChange}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <DropdownMenuRadioItem key={o.value} value={o.value}>
+                    {o.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
+            className="size-8"
             onClick={() => setShowFilters(!showFilters)}
           >
-            {showFilters ? 'Hide Filters' : 'Filters'}
+            <SlidersHorizontal className="size-4" />
           </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {data.pagination.currentPage} of {data.pagination.totalPages}
-          </span>
         </div>
       </div>
 

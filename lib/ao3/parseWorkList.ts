@@ -16,6 +16,18 @@ function textOf(el: Element | null): string {
   return el?.textContent?.trim() ?? ''
 }
 
+const MONTHS: Record<string, string> = {
+  Jan: '01', Feb: '02', Mar: '03', Apr: '04',
+  May: '05', Jun: '06', Jul: '07', Aug: '08',
+  Sep: '09', Oct: '10', Nov: '11', Dec: '12',
+}
+
+function toISODate(raw: string): string {
+  const m = raw.match(/^(\d{2})\s+(\w{3})\s+(\d{4})$/)
+  if (!m) return raw
+  return `${m[3]}-${MONTHS[m[2]] ?? '01'}-${m[1]}`
+}
+
 function parseWorkBlurb(el: Element): WorkBlurb {
   const id = el.id.replace('work_', '')
 
@@ -49,7 +61,7 @@ function parseWorkBlurb(el: Element): WorkBlurb {
     requiredTags[3]?.classList.contains('complete-yes') ?? false
 
   // Date
-  const date = textOf(el.querySelector('p.datetime'))
+  const date = toISODate(textOf(el.querySelector('p.datetime')))
 
   // Tags
   const tags: WorkTags = {

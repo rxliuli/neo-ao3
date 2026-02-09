@@ -14,7 +14,7 @@ export interface FilterState {
 export function defaultFilterState(): FilterState {
   return {
     query: '',
-    sortColumn: '',
+    sortColumn: 'revised_at',
     sortDirection: '',
     ratingId: '',
     warningIds: [],
@@ -43,7 +43,7 @@ export function parseFilterParams(url: string): FilterState {
   const state = defaultFilterState()
 
   state.query = params.get('work_search[query]') ?? ''
-  state.sortColumn = params.get('work_search[sort_column]') ?? ''
+  state.sortColumn = params.get('work_search[sort_column]') ?? 'revised_at'
   state.sortDirection = params.get('work_search[sort_direction]') ?? ''
   state.complete = params.get('work_search[complete]') ?? ''
   state.languageId = params.get('work_search[language_id]') ?? ''

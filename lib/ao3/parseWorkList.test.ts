@@ -53,7 +53,7 @@ describe('parseWorkList', () => {
     })
 
     it('should parse date', () => {
-      expect(work.date).toBe('01 Jan 2025')
+      expect(work.date).toBe('2025-01-01')
     })
 
     it('should parse tags', () => {

@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { ArrowDownAZ, ArrowDown01 } from 'lucide-react'
 import { parseFandomList } from '@/lib/ao3/parseFandomList'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu'
 
 type SortBy = 'alpha' | 'count'
 
@@ -44,29 +52,41 @@ export function FandomListPage({ doc }: { doc: Document }) {
       )}
 
       {/* Toolbar */}
-      <div className="sticky top-12 z-40 bg-background py-2 flex items-center gap-4 flex-wrap">
+      <div className="sticky top-12 z-40 bg-background py-2 flex items-center gap-2">
         <Input
           type="search"
           placeholder="Filter fandoms..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="max-w-sm flex-1"
+          className="flex-1 min-w-0"
         />
-        <div className="flex items-center gap-2">
-          <Label className="text-sm text-muted-foreground shrink-0">
-            Sort by
-          </Label>
-          <Select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="h-9 w-auto"
-          >
-            <option value="alpha">Alphabetical</option>
-            <option value="count">Work Count</option>
-          </Select>
-        </div>
-        <span className="text-sm text-muted-foreground">
-          {displayedFandoms.length.toLocaleString()} fandoms
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="shrink-0">
+              {sortBy === 'alpha' ? (
+                <ArrowDownAZ className="size-4" />
+              ) : (
+                <ArrowDown01 className="size-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={sortBy}
+              onValueChange={(v) => setSortBy(v as SortBy)}
+            >
+              <DropdownMenuRadioItem value="alpha">
+                Alphabetical
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="count">
+                Work Count
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="text-sm text-muted-foreground shrink-0">
+          {displayedFandoms.length.toLocaleString()}
         </span>
       </div>
 

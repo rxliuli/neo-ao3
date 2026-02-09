@@ -11,7 +11,6 @@ import { matchRoute, type Route } from './router'
 export function App(props: {
   initialRoute: Route
   initialDoc: Document | null
-  onShowOriginal: () => void
 }) {
   const [route, setRoute] = useState<Route>(props.initialRoute)
   const [doc, setDoc] = useState<Document | null>(props.initialDoc)
@@ -37,6 +36,11 @@ export function App(props: {
       let newDoc: Document | null = null
       if (matched.type !== 'home') {
         const response = await fetch(resolved)
+        if (response.status === 403) {
+          // Cloudflare challenge — full navigation, content script will handle it
+          window.location.href = resolved
+          return
+        }
         const html = await response.text()
         if (id !== navIdRef.current) return // stale
         newDoc = new DOMParser().parseFromString(html, 'text/html')
@@ -110,6 +114,10 @@ export function App(props: {
         let newDoc: Document | null = null
         if (matched.type !== 'home') {
           const response = await fetch(window.location.href)
+          if (response.status === 403) {
+            window.location.reload()
+            return
+          }
           const html = await response.text()
           if (id !== navIdRef.current) return
           newDoc = new DOMParser().parseFromString(html, 'text/html')
@@ -137,7 +145,7 @@ export function App(props: {
         {loading && (
           <div className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-primary animate-pulse" />
         )}
-        <AppHeader onShowOriginal={props.onShowOriginal} />
+        <AppHeader />
         {route.type === 'home' && <HomePage key={currentUrl} />}
         {route.type === 'work-list' && doc && (
           <WorkListPage key={currentUrl} doc={doc} url={currentUrl} />

@@ -17,13 +17,21 @@ export default defineContentScript({
 
     // Replace document with our minimal shell
     document.documentElement.innerHTML =
-      `<head><style>${styles}</style></head>` +
+      `<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>${styles}</style></head>` +
       `<body><div id="neo-ao3-root"></div></body>`
 
     // Fetch the original page HTML for data parsing (skip for pages that don't need it)
     let doc: Document | null = null
     if (route.type !== 'home') {
       const response = await fetch(window.location.href)
+      if (response.status === 403) {
+        // Cloudflare challenge — render challenge page so scripts execute
+        const html = await response.text()
+        document.open()
+        document.write(html)
+        document.close()
+        return
+      }
       const html = await response.text()
       doc = new DOMParser().parseFromString(html, 'text/html')
     }
@@ -32,17 +40,10 @@ export default defineContentScript({
     const rootEl = document.getElementById('neo-ao3-root')!
     const root = ReactDOM.createRoot(rootEl)
 
-    function showOriginal() {
-      const url = new URL(window.location.href)
-      url.searchParams.set('neo-ao3-original', '')
-      window.location.href = url.toString()
-    }
-
     root.render(
       <App
         initialRoute={route}
         initialDoc={doc}
-        onShowOriginal={showOriginal}
       />,
     )
 

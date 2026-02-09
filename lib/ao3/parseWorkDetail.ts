@@ -153,6 +153,8 @@ function parseChapterNav(doc: Document): ChapterNav | undefined {
   const form = select.closest('form')
   const actionBase = form?.getAttribute('action')?.replace(/\/chapters\/\d+/, '') ?? ''
 
+  const chapterUrls = options.map((o) => `${actionBase}/chapters/${o.value}`)
+
   return {
     prevUrl: prevOption
       ? `${actionBase}/chapters/${prevOption.value}`
@@ -162,6 +164,7 @@ function parseChapterNav(doc: Document): ChapterNav | undefined {
       : undefined,
     currentIndex: selectedIndex,
     totalChapters: options.length,
+    chapterUrls,
   }
 }
 

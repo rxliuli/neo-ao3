@@ -6,7 +6,15 @@ import { WorkListPage } from './pages/WorkListPage'
 import { WorkDetailPage } from './pages/WorkDetailPage'
 import { FandomListPage } from './pages/FandomListPage'
 import { UserProfilePage } from './pages/UserProfilePage'
+import { UserBookmarksPage } from './pages/UserBookmarksPage'
+import { UserPreferencesPage } from './pages/UserPreferencesPage'
+import { UserHistoryPage } from './pages/UserHistoryPage'
+import { UserInboxPage } from './pages/UserInboxPage'
+import { UserStatsPage } from './pages/UserStatsPage'
+import { LoginPage } from './pages/LoginPage'
 import { NavigationProvider } from './navigation'
+import { CurrentUserProvider } from './auth'
+import { parseCurrentUser, type CurrentUser } from '@/lib/ao3/parseLoginForm'
 import { matchRoute, type Route } from './router'
 
 export function App(props: {
@@ -17,7 +25,28 @@ export function App(props: {
   const [doc, setDoc] = useState<Document | null>(props.initialDoc)
   const [currentUrl, setCurrentUrl] = useState(window.location.href)
   const [loading, setLoading] = useState(false)
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(
+    props.initialDoc ? parseCurrentUser(props.initialDoc) : null,
+  )
   const navIdRef = useRef(0)
+
+  const handleLoginSuccess = useCallback(
+    (user: CurrentUser, redirectDoc: Document, redirectUrl: string) => {
+      setCurrentUser(user)
+      const matched = matchRoute(redirectUrl)
+      if (matched) {
+        history.pushState(null, '', redirectUrl)
+        setRoute(matched)
+        setDoc(redirectDoc)
+        setCurrentUrl(redirectUrl)
+        window.scrollTo(0, 0)
+      } else {
+        // Redirect target isn't a supported route, full navigation
+        window.location.href = redirectUrl
+      }
+    },
+    [],
+  )
 
   const navigate = useCallback(async (url: string) => {
     // Resolve to absolute URL
@@ -53,6 +82,7 @@ export function App(props: {
       setRoute(matched)
       setDoc(newDoc)
       setCurrentUrl(resolved)
+      if (newDoc) setCurrentUser(parseCurrentUser(newDoc))
       window.scrollTo(0, 0)
     } finally {
       if (id === navIdRef.current) {
@@ -129,6 +159,7 @@ export function App(props: {
         setRoute(matched)
         setDoc(newDoc)
         setCurrentUrl(window.location.href)
+        if (newDoc) setCurrentUser(parseCurrentUser(newDoc))
       } finally {
         if (id === navIdRef.current) {
           setLoading(false)
@@ -142,25 +173,45 @@ export function App(props: {
 
   return (
     <ThemeProvider>
-      <NavigationProvider value={navigate}>
-        {loading && (
-          <div className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-primary animate-pulse" />
-        )}
-        <AppHeader />
-        {route.type === 'home' && <HomePage key={currentUrl} />}
-        {route.type === 'work-list' && doc && (
-          <WorkListPage key={currentUrl} doc={doc} url={currentUrl} />
-        )}
-        {route.type === 'work-detail' && doc && (
-          <WorkDetailPage key={currentUrl} doc={doc} />
-        )}
-        {route.type === 'fandom-list' && doc && (
-          <FandomListPage key={currentUrl} doc={doc} />
-        )}
-        {route.type === 'user-profile' && doc && (
-          <UserProfilePage key={currentUrl} doc={doc} />
-        )}
-      </NavigationProvider>
+      <CurrentUserProvider value={currentUser}>
+        <NavigationProvider value={navigate}>
+          {loading && (
+            <div className="fixed top-0 left-0 right-0 z-[100] h-0.5 bg-primary animate-pulse" />
+          )}
+          <AppHeader />
+          {route.type === 'home' && <HomePage key={currentUrl} />}
+          {route.type === 'login' && doc && (
+            <LoginPage key={currentUrl} doc={doc} onLoginSuccess={handleLoginSuccess} />
+          )}
+          {route.type === 'work-list' && doc && (
+            <WorkListPage key={currentUrl} doc={doc} url={currentUrl} />
+          )}
+          {route.type === 'work-detail' && doc && (
+            <WorkDetailPage key={currentUrl} doc={doc} />
+          )}
+          {route.type === 'fandom-list' && doc && (
+            <FandomListPage key={currentUrl} doc={doc} />
+          )}
+          {route.type === 'user-bookmarks' && doc && (
+            <UserBookmarksPage key={currentUrl} doc={doc} url={currentUrl} />
+          )}
+          {route.type === 'user-preferences' && doc && (
+            <UserPreferencesPage key={currentUrl} doc={doc} />
+          )}
+          {route.type === 'user-history' && doc && (
+            <UserHistoryPage key={currentUrl} doc={doc} url={currentUrl} />
+          )}
+          {route.type === 'user-inbox' && doc && (
+            <UserInboxPage key={currentUrl} doc={doc} url={currentUrl} />
+          )}
+          {route.type === 'user-stats' && doc && (
+            <UserStatsPage key={currentUrl} doc={doc} />
+          )}
+          {route.type === 'user-profile' && doc && (
+            <UserProfilePage key={currentUrl} doc={doc} />
+          )}
+        </NavigationProvider>
+      </CurrentUserProvider>
     </ThemeProvider>
   )
 }

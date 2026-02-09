@@ -1,8 +1,69 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useNavigate } from '../navigation'
+import { useCurrentUser } from '../auth'
+
+function UserMenu() {
+  const currentUser = useCurrentUser()
+  const navigate = useNavigate()
+
+  if (!currentUser) {
+    return (
+      <a href="/users/login" className="text-sm hover:underline shrink-0">
+        Log In
+      </a>
+    )
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+          {currentUser.avatarUrl ? (
+            <img
+              src={currentUser.avatarUrl}
+              alt={currentUser.username}
+              className="size-7 rounded-full bg-muted object-cover"
+            />
+          ) : (
+            <div className="size-7 rounded-full bg-muted flex items-center justify-center">
+              <User className="size-4 text-muted-foreground" />
+            </div>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>{currentUser.username}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={() => navigate(currentUser.url)}
+        >
+          <User />
+          Dashboard
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={() => {
+            window.location.href = '/users/logout'
+          }}
+        >
+          <LogOut />
+          Log Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 export function AppHeader() {
   const [query, setQuery] = useState('')
@@ -33,9 +94,7 @@ export function AppHeader() {
             className="h-8 text-sm"
           />
         </form>
-        <a href="/users/login" className="text-sm hover:underline shrink-0">
-          Log In
-        </a>
+        <UserMenu />
       </div>
 
       {/* Mobile layout */}
@@ -52,9 +111,7 @@ export function AppHeader() {
           >
             <Search className="h-5 w-5" />
           </Button>
-          <a href="/users/login" className="text-sm hover:underline px-2">
-            Log In
-          </a>
+          <UserMenu />
         </div>
       </div>
 

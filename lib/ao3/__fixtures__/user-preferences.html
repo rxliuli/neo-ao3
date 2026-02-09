@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head><title>Preferences | AO3</title></head>
+<body>
+<div id="main" class="preferences-index">
+
+  <div id="dashboard" class="region" role="navigation">
+    <h4 class="landmark heading">Choices</h4>
+    <ul class="navigation actions">
+      <li><a href="/users/testuser">Dashboard</a></li>
+      <li><a href="/users/testuser/profile">Profile</a></li>
+      <li><span class="current">Preferences</span></li>
+    </ul>
+
+    <h4 class="landmark heading">Pitch</h4>
+    <ul class="navigation actions">
+      <li><a href="/users/testuser/works">Works (15)</a></li>
+      <li><a href="/users/testuser/bookmarks">Bookmarks (42)</a></li>
+    </ul>
+  </div>
+
+  <h2 class="heading">Preferences</h2>
+
+  <h3 class="landmark heading">Navigation</h3>
+  <ul class="navigation actions">
+    <li><a href="/users/testuser/profile/edit">Edit My Profile</a></li>
+    <li><a href="/users/testuser/pseuds">Manage My Pseuds</a></li>
+    <li><a href="/users/testuser/blocked">Manage Blocked Users</a></li>
+    <li><a href="/users/testuser/muted">Manage Muted Users</a></li>
+    <li><a href="/users/testuser/change_email">Change My Email</a></li>
+    <li><a href="/users/testuser/change_username">Change My Username</a></li>
+    <li><a href="/users/testuser/change_password">Change My Password</a></li>
+  </ul>
+
+  <form class="edit_preference" id="edit_preference_99" action="/users/testuser/preferences" accept-charset="UTF-8" method="post">
+    <input type="hidden" name="authenticity_token" value="test_csrf_token_abc123" />
+    <input type="hidden" name="_method" value="put" />
+
+    <fieldset>
+      <legend>Privacy</legend>
+      <dl>
+        <dt><label for="preference_minimize_search_engines">Hide my work from search engines when possible</label></dt>
+        <dd><input type="checkbox" name="preference[minimize_search_engines]" id="preference_minimize_search_engines" value="1" /></dd>
+
+        <dt><label for="preference_disable_share_links">Hide the share buttons on my work</label></dt>
+        <dd><input type="checkbox" name="preference[disable_share_links]" id="preference_disable_share_links" value="1" checked="checked" /></dd>
+
+        <dt><label for="preference_allow_cocreator">Allow others to invite me to be a co-creator</label></dt>
+        <dd><input type="checkbox" name="preference[allow_cocreator]" id="preference_allow_cocreator" value="1" checked="checked" /></dd>
+      </dl>
+    </fieldset>
+
+    <fieldset>
+      <legend>Display</legend>
+      <dl>
+        <dt><label for="preference_adult">Show me adult content without asking</label></dt>
+        <dd><input type="checkbox" name="preference[adult]" id="preference_adult" value="1" checked="checked" /></dd>
+
+        <dt><label for="preference_view_full_works">Show the whole work by default</label></dt>
+        <dd><input type="checkbox" name="preference[view_full_works]" id="preference_view_full_works" value="1" /></dd>
+
+        <dt><label for="preference_hide_warnings">Hide additional warnings</label></dt>
+        <dd><input type="checkbox" name="preference[hide_warnings]" id="preference_hide_warnings" value="1" /></dd>
+
+        <dt><label for="preference_hide_freeform">Hide additional tags</label></dt>
+        <dd><input type="checkbox" name="preference[hide_freeform]" id="preference_hide_freeform" value="1" /></dd>
+
+        <dt><label for="preference_skin_id">Site skin</label></dt>
+        <dd>
+          <select name="preference[skin_id]" id="preference_skin_id">
+            <option value="">Default</option>
+            <option value="1" selected="selected">Reversi</option>
+            <option value="2">Low Vision</option>
+          </select>
+        </dd>
+
+        <dt><label for="preference_time_zone">Time zone</label></dt>
+        <dd>
+          <select name="preference[time_zone]" id="preference_time_zone">
+            <option value="Eastern Time (US &amp; Canada)">Eastern Time (US &amp; Canada)</option>
+            <option value="Pacific Time (US &amp; Canada)" selected="selected">Pacific Time (US &amp; Canada)</option>
+            <option value="UTC">UTC</option>
+          </select>
+        </dd>
+
+        <dt><label for="preference_browser_page_title_format">Browser page title format</label></dt>
+        <dd>
+          <select name="preference[browser_page_title_format]" id="preference_browser_page_title_format">
+            <option value="default" selected="selected">Default</option>
+            <option value="brief">Brief</option>
+          </select>
+        </dd>
+      </dl>
+    </fieldset>
+
+    <fieldset>
+      <legend>Comments</legend>
+      <dl>
+        <dt><label for="preference_comment_emails_off">Turn off emails about comments</label></dt>
+        <dd><input type="checkbox" name="preference[comment_emails_off]" id="preference_comment_emails_off" value="1" /></dd>
+
+        <dt><label for="preference_kudos_emails_off">Turn off emails about kudos</label></dt>
+        <dd><input type="checkbox" name="preference[kudos_emails_off]" id="preference_kudos_emails_off" value="1" checked="checked" /></dd>
+
+        <dt><label for="preference_comment_inbox_off">Turn off inbox for comments</label></dt>
+        <dd><input type="checkbox" name="preference[comment_inbox_off]" id="preference_comment_inbox_off" value="1" /></dd>
+
+        <dt><label for="preference_comment_copy_to_self_off">Don't copy my own comments to my inbox</label></dt>
+        <dd><input type="checkbox" name="preference[comment_copy_to_self_off]" id="preference_comment_copy_to_self_off" value="1" checked="checked" /></dd>
+
+        <dt><label for="preference_guest_replies_off">Turn off emails for replies to my guest comments</label></dt>
+        <dd><input type="checkbox" name="preference[guest_replies_off]" id="preference_guest_replies_off" value="1" /></dd>
+      </dl>
+    </fieldset>
+
+    <fieldset>
+      <legend>Collections, Challenges, and Gifts</legend>
+      <dl>
+        <dt><label for="preference_collection_emails_off">Turn off emails about collections</label></dt>
+        <dd><input type="checkbox" name="preference[collection_emails_off]" id="preference_collection_emails_off" value="1" /></dd>
+
+        <dt><label for="preference_collection_inbox_off">Turn off inbox for collections</label></dt>
+        <dd><input type="checkbox" name="preference[collection_inbox_off]" id="preference_collection_inbox_off" value="1" /></dd>
+
+        <dt><label for="preference_recipient_emails_off">Turn off emails about gift works</label></dt>
+        <dd><input type="checkbox" name="preference[recipient_emails_off]" id="preference_recipient_emails_off" value="1" /></dd>
+
+        <dt><label for="preference_allow_gifts">Allow others to gift works to me</label></dt>
+        <dd><input type="checkbox" name="preference[allow_gifts]" id="preference_allow_gifts" value="1" checked="checked" /></dd>
+
+        <dt><label for="preference_allow_collection_invitation">Allow others to invite my works to collections</label></dt>
+        <dd><input type="checkbox" name="preference[allow_collection_invitation]" id="preference_allow_collection_invitation" value="1" checked="checked" /></dd>
+      </dl>
+    </fieldset>
+
+    <fieldset>
+      <legend>Miscellaneous</legend>
+      <dl>
+        <dt><label for="preference_history_enabled">Turn on my browsing history</label></dt>
+        <dd><input type="checkbox" name="preference[history_enabled]" id="preference_history_enabled" value="1" checked="checked" /></dd>
+
+        <dt><label for="preference_first_login">Show me the new user help</label></dt>
+        <dd><input type="checkbox" name="preference[first_login]" id="preference_first_login" value="1" /></dd>
+
+        <dt><label for="preference_banner_seen">Show me site banners</label></dt>
+        <dd><input type="checkbox" name="preference[banner_seen]" id="preference_banner_seen" value="1" checked="checked" /></dd>
+      </dl>
+    </fieldset>
+
+    <p class="submit actions">
+      <input type="submit" name="commit" value="Update" />
+    </p>
+  </form>
+
+</div>
+</body>
+</html>

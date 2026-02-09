@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head><title>testuser's Bookmarks | AO3</title></head>
+<body>
+<div id="main" class="bookmarks-index">
+
+  <div id="dashboard" class="region" role="navigation">
+    <h4 class="landmark heading">Choices</h4>
+    <ul class="navigation actions">
+      <li><a href="/users/testuser">Dashboard</a></li>
+      <li><a href="/users/testuser/profile">Profile</a></li>
+      <li><a href="/users/testuser/preferences">Preferences</a></li>
+    </ul>
+
+    <h4 class="landmark heading">Pitch</h4>
+    <ul class="navigation actions">
+      <li><a href="/users/testuser/works">Works (15)</a></li>
+      <li><a href="/users/testuser/series">Series (3)</a></li>
+      <li><span class="current">Bookmarks (42)</span></li>
+      <li><a href="/users/testuser/collections">Collections (1)</a></li>
+    </ul>
+  </div>
+
+  <h2 class="heading">42 Bookmarks by testuser</h2>
+
+  <!-- Bookmark filter sidebar -->
+  <form id="bookmark-filters" accept-charset="UTF-8" method="get" action="/users/testuser/bookmarks">
+
+    <h4 class="heading">Include</h4>
+    <fieldset>
+      <dl>
+        <dt class="landmark heading">Include Rating Tags</dt>
+        <dd id="include_rating_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_bookmark_search[rating_ids][]" value="10" /> General Audiences (15)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[rating_ids][]" value="11" /> Teen And Up Audiences (12)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[rating_ids][]" value="13" /> Explicit (8)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Fandom Tags</dt>
+        <dd id="include_fandom_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_bookmark_search[fandom_ids][]" value="27" /> Marvel Cinematic Universe (20)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[fandom_ids][]" value="143" /> Supernatural (15)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[fandom_ids][]" value="289" /> Harry Potter (7)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Character Tags</dt>
+        <dd id="include_character_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_bookmark_search[character_ids][]" value="501" /> Steve Rogers (18)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[character_ids][]" value="502" /> Tony Stark (14)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[character_ids][]" value="503" /> Dean Winchester (12)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Relationship Tags</dt>
+        <dd id="include_relationship_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_bookmark_search[relationship_ids][]" value="601" /> Steve Rogers/Tony Stark (10)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[relationship_ids][]" value="602" /> Castiel/Dean Winchester (8)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Additional Tags</dt>
+        <dd id="include_freeform_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_bookmark_search[freeform_ids][]" value="701" /> Fluff (12)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[freeform_ids][]" value="702" /> Angst (9)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Include Bookmarker's Tags</dt>
+        <dd id="include_tag_tags">
+          <ul>
+            <li><label><input type="checkbox" name="include_bookmark_search[tag_ids][]" value="801" /> favorites (25)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[tag_ids][]" value="802" /> to reread (18)</label></li>
+            <li><label><input type="checkbox" name="include_bookmark_search[tag_ids][]" value="803" /> comfort fic (5)</label></li>
+          </ul>
+        </dd>
+      </dl>
+    </fieldset>
+
+    <h4 class="heading">Exclude</h4>
+    <fieldset>
+      <dl>
+        <dt class="landmark heading">Exclude Rating Tags</dt>
+        <dd id="exclude_rating_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[rating_ids][]" value="13" /> Explicit (8)</label></li>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[rating_ids][]" value="12" /> Mature (5)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Warning Tags</dt>
+        <dd id="exclude_warning_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[archive_warning_ids][]" value="17" /> Graphic Depictions Of Violence (6)</label></li>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[archive_warning_ids][]" value="18" /> Major Character Death (3)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Category Tags</dt>
+        <dd id="exclude_category_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[category_ids][]" value="23" /> M/M (15)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Fandom Tags</dt>
+        <dd id="exclude_fandom_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[fandom_ids][]" value="289" /> Harry Potter (7)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Character Tags</dt>
+        <dd id="exclude_character_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[character_ids][]" value="503" /> Dean Winchester (12)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Relationship Tags</dt>
+        <dd id="exclude_relationship_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[relationship_ids][]" value="602" /> Castiel/Dean Winchester (8)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Additional Tags</dt>
+        <dd id="exclude_freeform_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[freeform_ids][]" value="702" /> Angst (9)</label></li>
+          </ul>
+        </dd>
+
+        <dt class="landmark heading">Exclude Bookmarker's Tags</dt>
+        <dd id="exclude_tag_tags">
+          <ul>
+            <li><label><input type="checkbox" name="exclude_bookmark_search[tag_ids][]" value="803" /> comfort fic (5)</label></li>
+          </ul>
+        </dd>
+      </dl>
+    </fieldset>
+  </form>
+
+  <ol class="pagination actions" role="navigation">
+    <li class="previous"><span class="disabled">&larr; Previous</span></li>
+    <li><a class="current">1</a></li>
+    <li><a href="/users/testuser/bookmarks?page=2">2</a></li>
+    <li><a href="/users/testuser/bookmarks?page=3">3</a></li>
+    <li class="next"><a href="/users/testuser/bookmarks?page=2" rel="next">Next &rarr;</a></li>
+  </ol>
+
+  <ol class="bookmark index group">
+
+    <!-- Bookmark 1: A recommended bookmark with notes and bookmarker tags -->
+    <li id="bookmark_90001" class="bookmark blurb group" role="article">
+
+      <div class="header module">
+        <h4 class="heading">
+          <a href="/works/20001">Midnight Sun</a>
+          by
+          <a rel="author" href="/users/authorone/pseuds/authorone">authorone</a>
+        </h4>
+        <h5 class="fandoms heading">
+          <span class="landmark">Fandoms:</span>
+          <a class="tag" href="/tags/Marvel%20Cinematic%20Universe/works">Marvel Cinematic Universe</a>
+        </h5>
+        <ul class="required-tags">
+          <li><a><span class="rating-teen rating" title="Teen And Up Audiences">Teen And Up Audiences</span></a></li>
+          <li><a><span class="warning-no warnings" title="No Archive Warnings Apply">No Archive Warnings Apply</span></a></li>
+          <li><a><span class="category-gen category" title="Gen">Gen</span></a></li>
+          <li><a><span class="complete-yes iswip" title="Complete Work">Complete Work</span></a></li>
+        </ul>
+        <p class="datetime">20 Nov 2024</p>
+      </div>
+
+      <h6 class="landmark heading">Tags</h6>
+      <ul class="tags commas">
+        <li class="warnings"><a class="tag">No Archive Warnings Apply</a></li>
+        <li class="relationships"><a class="tag">Steve Rogers/Tony Stark</a></li>
+        <li class="characters"><a class="tag">Steve Rogers</a></li>
+        <li class="characters"><a class="tag">Tony Stark</a></li>
+        <li class="freeforms"><a class="tag">Fluff</a></li>
+        <li class="freeforms"><a class="tag">Getting Together</a></li>
+      </ul>
+
+      <blockquote class="userstuff summary">
+        <p>Steve and Tony watch the sunrise together.</p>
+      </blockquote>
+
+      <dl class="stats">
+        <dt class="language">Language:</dt><dd class="language">English</dd>
+        <dt class="words">Words:</dt><dd class="words">5,200</dd>
+        <dt class="chapters">Chapters:</dt><dd class="chapters">1/1</dd>
+        <dt class="kudos">Kudos:</dt><dd class="kudos">340</dd>
+        <dt class="bookmarks">Bookmarks:</dt><dd class="bookmarks">52</dd>
+        <dt class="hits">Hits:</dt><dd class="hits">4,100</dd>
+      </dl>
+
+      <div class="user module group">
+        <h5 class="byline heading">
+          Bookmarked by <a href="/users/testuser/pseuds/testuser/bookmarks">testuser</a>
+        </h5>
+        <p class="datetime">25 Nov 2024</p>
+        <p class="status">
+          <a href="/works/20001/bookmarks"><span class="symbol"><span class="rec" title="Rec">Rec</span></span></a>
+        </p>
+
+        <h6 class="meta heading">Bookmarker's Tags</h6>
+        <ul class="meta tags commas">
+          <li><a href="/tags/favorites/bookmarks" class="tag">favorites</a></li>
+          <li><a href="/tags/to%20reread/bookmarks" class="tag">to reread</a></li>
+        </ul>
+
+        <h6 class="landmark heading">Bookmarker's Notes</h6>
+        <blockquote class="userstuff notes">
+          <p>One of my all-time favorite fics!</p>
+        </blockquote>
+      </div>
+
+    </li>
+
+    <!-- Bookmark 2: A plain bookmark with no notes or bookmarker tags -->
+    <li id="bookmark_90002" class="bookmark blurb group" role="article">
+
+      <div class="header module">
+        <h4 class="heading">
+          <a href="/works/20002">Echoes of Tomorrow</a>
+          by
+          <a rel="author" href="/users/authortwo/pseuds/authortwo">authortwo</a>,
+          <a rel="author" href="/users/authorthree/pseuds/authorthree">authorthree</a>
+        </h4>
+        <h5 class="fandoms heading">
+          <span class="landmark">Fandoms:</span>
+          <a class="tag" href="/tags/Supernatural/works">Supernatural</a>,
+          <a class="tag" href="/tags/Harry%20Potter/works">Harry Potter</a>
+        </h5>
+        <ul class="required-tags">
+          <li><a><span class="rating-explicit rating" title="Explicit">Explicit</span></a></li>
+          <li><a><span class="warning-yes warnings" title="Graphic Depictions Of Violence">Graphic Depictions Of Violence</span></a></li>
+          <li><a><span class="category-slash category" title="M/M">M/M</span></a></li>
+          <li><a><span class="complete-no iswip" title="Work in Progress">Work in Progress</span></a></li>
+        </ul>
+        <p class="datetime">05 Oct 2024</p>
+      </div>
+
+      <h6 class="landmark heading">Tags</h6>
+      <ul class="tags commas">
+        <li class="warnings"><a class="tag">Graphic Depictions Of Violence</a></li>
+        <li class="relationships"><a class="tag">Dean Winchester/Castiel</a></li>
+        <li class="freeforms"><a class="tag">Crossover</a></li>
+        <li class="freeforms"><a class="tag">Slow Burn</a></li>
+      </ul>
+
+      <blockquote class="userstuff summary">
+        <p>A crossover where hunters meet wizards.</p>
+      </blockquote>
+
+      <dl class="stats">
+        <dt class="language">Language:</dt><dd class="language">English</dd>
+        <dt class="words">Words:</dt><dd class="words">45,000</dd>
+        <dt class="chapters">Chapters:</dt><dd class="chapters">12/?</dd>
+        <dt class="comments">Comments:</dt><dd class="comments">89</dd>
+        <dt class="kudos">Kudos:</dt><dd class="kudos">567</dd>
+        <dt class="bookmarks">Bookmarks:</dt><dd class="bookmarks">102</dd>
+        <dt class="hits">Hits:</dt><dd class="hits">12,300</dd>
+      </dl>
+
+      <div class="user module group">
+        <h5 class="byline heading">
+          Bookmarked by <a href="/users/testuser/pseuds/testuser/bookmarks">testuser</a>
+        </h5>
+        <p class="datetime">10 Oct 2024</p>
+      </div>
+
+    </li>
+
+  </ol>
+
+  <ol class="pagination actions" role="navigation">
+    <li class="previous"><span class="disabled">&larr; Previous</span></li>
+    <li><a class="current">1</a></li>
+    <li><a href="/users/testuser/bookmarks?page=2">2</a></li>
+    <li><a href="/users/testuser/bookmarks?page=3">3</a></li>
+    <li class="next"><a href="/users/testuser/bookmarks?page=2" rel="next">Next &rarr;</a></li>
+  </ol>
+
+</div>
+</body>
+</html>

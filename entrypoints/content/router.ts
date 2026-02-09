@@ -3,7 +3,13 @@ export type Route =
   | { type: 'work-list' }
   | { type: 'work-detail'; workId: string }
   | { type: 'fandom-list' }
+  | { type: 'user-bookmarks' }
+  | { type: 'user-preferences' }
   | { type: 'user-profile' }
+  | { type: 'user-history' }
+  | { type: 'user-inbox' }
+  | { type: 'user-stats' }
+  | { type: 'login' }
 
 export function matchRoute(url: string): Route | null {
   const u = new URL(url)
@@ -37,6 +43,36 @@ export function matchRoute(url: string): Route | null {
   // Fandom list: /media/*/fandoms
   if (/^\/media\/[^/]+\/fandoms/.test(path)) {
     return { type: 'fandom-list' }
+  }
+
+  // Login: /users/login
+  if (path === '/users/login') {
+    return { type: 'login' }
+  }
+
+  // User bookmarks: /users/{name}/bookmarks, /users/{name}/pseuds/{pseudo}/bookmarks
+  if (/^\/users\/[^/]+(\/pseuds\/[^/]+)?\/bookmarks/.test(path)) {
+    return { type: 'user-bookmarks' }
+  }
+
+  // User preferences: /users/{name}/preferences
+  if (/^\/users\/[^/]+\/preferences$/.test(path)) {
+    return { type: 'user-preferences' }
+  }
+
+  // User history/readings: /users/{name}/readings
+  if (/^\/users\/[^/]+\/readings/.test(path)) {
+    return { type: 'user-history' }
+  }
+
+  // User inbox: /users/{name}/inbox
+  if (/^\/users\/[^/]+\/inbox$/.test(path)) {
+    return { type: 'user-inbox' }
+  }
+
+  // User stats: /users/{name}/stats
+  if (/^\/users\/[^/]+\/stats$/.test(path)) {
+    return { type: 'user-stats' }
   }
 
   // User profile: /users/{name}, /users/{name}/profile, /users/{name}/pseuds/{pseudo}[/profile]

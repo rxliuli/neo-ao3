@@ -1,25 +1,22 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { parseWorkList } from '@/lib/ao3/parseWorkList'
+import { parseBookmarkList, type BookmarkBlurb } from '@/lib/ao3/parseBookmarkList'
 import {
-  parseFilterParams,
-  buildFilterUrl,
-  defaultFilterState,
-  isTagPage,
-  type FilterState,
-} from '@/lib/ao3/parseFilterParams'
+  parseBookmarkFilterParams,
+  buildBookmarkFilterUrl,
+  defaultBookmarkFilterState,
+  type BookmarkFilterState,
+} from '@/lib/ao3/parseBookmarkFilterParams'
 import {
-  parseFilterSidebar,
-  type FilterSidebar,
-  type TagOption,
-} from '@/lib/ao3/parseFilterSidebar'
-import type { WorkBlurb } from '@/lib/ao3/types'
-import { PaginationControls } from '../components/PaginationControls'
+  parseBookmarkFilterSidebar,
+  type BookmarkFilterSidebar,
+} from '@/lib/ao3/parseBookmarkFilterSidebar'
+import type { TagOption } from '@/lib/ao3/parseFilterSidebar'
+import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
+import { UserDashboardNav } from '../components/UserDashboardNav'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { MultiSelect } from '@/components/ui/multi-select'
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -34,88 +31,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { ArrowUpDown, SlidersHorizontal, ChevronRight, CalendarIcon } from 'lucide-react'
-import { format, parse } from 'date-fns'
-import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { ArrowUpDown, SlidersHorizontal, ChevronRight } from 'lucide-react'
 import { useNavigate } from '../navigation'
-
-// --- Constants ---
+import { PaginationControls } from '../components/PaginationControls'
 
 const SORT_OPTIONS = [
-  { label: 'Date Updated', value: 'revised_at' },
-  { label: 'Date Posted', value: 'created_at' },
-  { label: 'Author', value: 'authors_to_sort_on' },
-  { label: 'Title', value: 'title_to_sort_on' },
+  { label: 'Date Bookmarked', value: 'created_at' },
+  { label: 'Date Updated', value: 'bookmarkable_date' },
   { label: 'Word Count', value: 'word_count' },
-  { label: 'Hits', value: 'hits' },
-  { label: 'Kudos', value: 'kudos_count' },
-  { label: 'Comments', value: 'comments_count' },
-  { label: 'Bookmarks', value: 'bookmarks_count' },
 ]
 
-const RATING_OPTIONS = [
-  { label: 'Any', value: '' },
-  { label: 'Not Rated', value: '9' },
-  { label: 'General Audiences', value: '10' },
-  { label: 'Teen And Up Audiences', value: '11' },
-  { label: 'Mature', value: '12' },
-  { label: 'Explicit', value: '13' },
-]
-
-const WARNING_OPTIONS = [
-  { label: 'Creator Chose Not To Use Archive Warnings', value: '14' },
-  { label: 'No Archive Warnings Apply', value: '16' },
-  { label: 'Graphic Depictions Of Violence', value: '17' },
-  { label: 'Major Character Death', value: '18' },
-  { label: 'Rape/Non-Con', value: '19' },
-  { label: 'Underage', value: '20' },
-]
-
-const CATEGORY_OPTIONS = [
-  { label: 'F/F', value: '116' },
-  { label: 'F/M', value: '22' },
-  { label: 'Gen', value: '21' },
-  { label: 'M/M', value: '23' },
-  { label: 'Multi', value: '2246' },
-  { label: 'Other', value: '24' },
-]
-
-const COMPLETION_OPTIONS = [
-  { label: 'All', value: '' },
-  { label: 'Complete', value: 'T' },
-  { label: 'Work in Progress', value: 'F' },
-]
-
-const LANGUAGE_OPTIONS = [
-  { label: 'Any', value: '' },
-  { label: 'English', value: 'en' },
-  { label: '中文-普通话 國語', value: 'zh' },
-  { label: '日本語', value: 'ja' },
-  { label: 'Español', value: 'es' },
-  { label: 'Français', value: 'fr' },
-  { label: 'Deutsch', value: 'de' },
-  { label: 'Italiano', value: 'it' },
-  { label: 'Português', value: 'pt' },
-  { label: 'Русский', value: 'ru' },
-  { label: '한국어', value: 'ko' },
-]
-
-const CROSSOVER_OPTIONS = [
-  { label: 'Include crossovers', value: '' },
-  { label: 'Exclude crossovers', value: 'F' },
-  { label: 'Only crossovers', value: 'T' },
-]
-
-// --- Sub-components ---
-
-function WorkCard({ work }: { work: WorkBlurb }) {
+function BookmarkCard({ bookmark }: { bookmark: BookmarkBlurb }) {
+  const { work, bookmark: meta } = bookmark
   const [expanded, setExpanded] = useState(false)
   const tagsRef = useRef<HTMLDivElement>(null)
   const [hiddenCount, setHiddenCount] = useState(0)
@@ -175,6 +102,11 @@ function WorkCard({ work }: { work: WorkBlurb }) {
           >
             {work.title}
           </a>
+          {meta.isRec && (
+            <Badge variant="default" className="ml-2 text-xs">
+              Rec
+            </Badge>
+          )}
         </h3>
         <p className="text-sm text-muted-foreground">
           by{' '}
@@ -231,14 +163,33 @@ function WorkCard({ work }: { work: WorkBlurb }) {
         {work.stats.kudos > 0 && (
           <span>Kudos: {work.stats.kudos.toLocaleString()}</span>
         )}
-        {work.stats.comments > 0 && (
-          <span>Comments: {work.stats.comments.toLocaleString()}</span>
+        {work.stats.hits > 0 && (
+          <span>Hits: {work.stats.hits.toLocaleString()}</span>
         )}
-        {work.stats.bookmarks > 0 && (
-          <span>Bookmarks: {work.stats.bookmarks.toLocaleString()}</span>
+      </div>
+
+      {/* Bookmark metadata */}
+      <div className="border-t pt-2 mt-2 space-y-1">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Bookmarked {meta.bookmarkDate}</span>
+        </div>
+
+        {meta.bookmarkerTags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {meta.bookmarkerTags.map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
         )}
-        <span>Hits: {work.stats.hits.toLocaleString()}</span>
-        <span>{work.date}</span>
+
+        {meta.bookmarkerNotes && (
+          <div
+            className="text-sm text-muted-foreground italic"
+            dangerouslySetInnerHTML={{ __html: meta.bookmarkerNotes }}
+          />
+        )}
       </div>
     </article>
   )
@@ -277,38 +228,6 @@ function TagCheckboxGroup(props: {
   )
 }
 
-function DatePicker(props: {
-  value: string // "YYYY-MM-DD" or ""
-  onChange: (value: string) => void
-  placeholder?: string
-}) {
-  const date = props.value
-    ? parse(props.value, 'yyyy-MM-dd', new Date())
-    : undefined
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          data-empty={!props.value}
-          className="h-8 w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-        >
-          <CalendarIcon className="size-4" />
-          {date ? format(date, 'yyyy-MM-dd') : <span>{props.placeholder ?? 'Pick a date'}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={(d) => props.onChange(d ? format(d, 'yyyy-MM-dd') : '')}
-        />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 function CollapsibleSection(props: {
   title: string
   children: React.ReactNode
@@ -334,133 +253,51 @@ function CollapsibleSection(props: {
   )
 }
 
-function FilterPanel(props: {
-  filters: FilterState
-  onChange: (filters: FilterState) => void
+function BookmarkFilterPanel(props: {
+  filters: BookmarkFilterState
+  onChange: (filters: BookmarkFilterState) => void
   onApply: () => void
   onReset: () => void
-  sidebar: FilterSidebar | null
-  tagPage: boolean
+  sidebar: BookmarkFilterSidebar | null
 }) {
   const { filters, onChange, sidebar } = props
 
-  function update(partial: Partial<FilterState>) {
+  function update(partial: Partial<BookmarkFilterState>) {
     onChange({ ...filters, ...partial })
   }
 
   return (
     <div className="border rounded-md p-4 space-y-4">
-      {/* Basic Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Rating</Label>
-          <Select
-            value={filters.ratingId}
-            onChange={(e) => update({ ratingId: e.target.value })}
-          >
-            {RATING_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Completion</Label>
-          <Select
-            value={filters.complete}
-            onChange={(e) => update({ complete: e.target.value })}
-          >
-            {COMPLETION_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Language</Label>
-          <Select
-            value={filters.languageId}
-            onChange={(e) => update({ languageId: e.target.value })}
-          >
-            {LANGUAGE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Word Count</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              placeholder="From"
-              value={filters.wordCountFrom}
-              onChange={(e) => update({ wordCountFrom: e.target.value })}
-              className="h-8"
-            />
-            <span className="text-muted-foreground">-</span>
-            <Input
-              type="number"
-              placeholder="To"
-              value={filters.wordCountTo}
-              onChange={(e) => update({ wordCountTo: e.target.value })}
-              className="h-8"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label>Warnings</Label>
-          <MultiSelect
-            options={WARNING_OPTIONS}
-            defaultValue={filters.warningIds}
-            onValueChange={(warningIds) => update({ warningIds })}
-            placeholder="Any"
-            searchable={false}
-            hideSelectAll
-            maxCount={1}
-            popoverClassName="!w-(--radix-popover-trigger-width) !min-w-0"
+      {/* Bookmark-specific toggles */}
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-1.5 text-sm">
+          <input
+            type="checkbox"
+            checked={filters.rec === '1'}
+            onChange={(e) => update({ rec: e.target.checked ? '1' : '' })}
           />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Categories</Label>
-          <MultiSelect
-            options={CATEGORY_OPTIONS}
-            defaultValue={filters.categoryIds}
-            onValueChange={(categoryIds) => update({ categoryIds })}
-            placeholder="Any"
-            searchable={false}
-            hideSelectAll
-            maxCount={2}
-            popoverClassName="!w-(--radix-popover-trigger-width) !min-w-0"
+          Rec only
+        </label>
+        <label className="flex items-center gap-1.5 text-sm">
+          <input
+            type="checkbox"
+            checked={filters.withNotes === '1'}
+            onChange={(e) => update({ withNotes: e.target.checked ? '1' : '' })}
           />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label>Search within results</Label>
-        <Input
-          type="text"
-          placeholder="Search..."
-          value={filters.query}
-          onChange={(e) => update({ query: e.target.value })}
-          className="h-8 max-w-sm"
-        />
+          With notes
+        </label>
       </div>
 
       {/* Include Tags */}
       <CollapsibleSection title="Include Tags">
         {sidebar && (
           <>
+            <TagCheckboxGroup
+              label="Ratings"
+              options={sidebar.includeRatings}
+              selected={filters.includeRatingIds}
+              onChange={(includeRatingIds) => update({ includeRatingIds })}
+            />
             <TagCheckboxGroup
               label="Fandoms"
               options={sidebar.includeFandoms}
@@ -485,15 +322,31 @@ function FilterPanel(props: {
               selected={filters.includeFreeformIds}
               onChange={(includeFreeformIds) => update({ includeFreeformIds })}
             />
+            <TagCheckboxGroup
+              label="Bookmarker's Tags"
+              options={sidebar.includeBookmarkerTags}
+              selected={filters.includeBookmarkerTagIds}
+              onChange={(includeBookmarkerTagIds) => update({ includeBookmarkerTagIds })}
+            />
           </>
         )}
         <div className="space-y-1.5">
-          <Label>Other tags to include</Label>
+          <Label>Other work tags to include</Label>
           <Input
             type="text"
             placeholder="Tag names, comma separated"
             value={filters.otherTagsToInclude}
             onChange={(e) => update({ otherTagsToInclude: e.target.value })}
+            className="h-8"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Other bookmarker's tags to include</Label>
+          <Input
+            type="text"
+            placeholder="Tag names, comma separated"
+            value={filters.otherBookmarkTagsToInclude}
+            onChange={(e) => update({ otherBookmarkTagsToInclude: e.target.value })}
             className="h-8"
           />
         </div>
@@ -545,10 +398,16 @@ function FilterPanel(props: {
               selected={filters.excludeFreeformIds}
               onChange={(excludeFreeformIds) => update({ excludeFreeformIds })}
             />
+            <TagCheckboxGroup
+              label="Bookmarker's Tags"
+              options={sidebar.excludeBookmarkerTags}
+              selected={filters.excludeBookmarkerTagIds}
+              onChange={(excludeBookmarkerTagIds) => update({ excludeBookmarkerTagIds })}
+            />
           </>
         )}
         <div className="space-y-1.5">
-          <Label>Other tags to exclude</Label>
+          <Label>Other work tags to exclude</Label>
           <Input
             type="text"
             placeholder="Tag names, comma separated"
@@ -557,43 +416,61 @@ function FilterPanel(props: {
             className="h-8"
           />
         </div>
+        <div className="space-y-1.5">
+          <Label>Other bookmarker's tags to exclude</Label>
+          <Input
+            type="text"
+            placeholder="Tag names, comma separated"
+            value={filters.otherBookmarkTagsToExclude}
+            onChange={(e) => update({ otherBookmarkTagsToExclude: e.target.value })}
+            className="h-8"
+          />
+        </div>
       </CollapsibleSection>
 
       {/* More Options */}
       <CollapsibleSection title="More Options">
         <div className="space-y-1.5">
-          <Label>Crossovers</Label>
-          <Select
-            value={filters.crossover}
-            onChange={(e) => update({ crossover: e.target.value })}
-          >
-            {CROSSOVER_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </Select>
+          <Label>Word Count</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              placeholder="From"
+              value={filters.wordCountFrom}
+              onChange={(e) => update({ wordCountFrom: e.target.value })}
+              className="h-8"
+            />
+            <span className="text-muted-foreground">-</span>
+            <Input
+              type="number"
+              placeholder="To"
+              value={filters.wordCountTo}
+              onChange={(e) => update({ wordCountTo: e.target.value })}
+              className="h-8"
+            />
+          </div>
         </div>
 
         <div className="space-y-1.5">
-          <Label>Date Updated</Label>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <DatePicker
-                value={filters.dateFrom}
-                onChange={(dateFrom) => update({ dateFrom })}
-                placeholder="From"
-              />
-            </div>
-            <span className="text-muted-foreground shrink-0">to</span>
-            <div className="flex-1 min-w-0">
-              <DatePicker
-                value={filters.dateTo}
-                onChange={(dateTo) => update({ dateTo })}
-                placeholder="To"
-              />
-            </div>
-          </div>
+          <Label>Search within results</Label>
+          <Input
+            type="text"
+            placeholder="Search works..."
+            value={filters.query}
+            onChange={(e) => update({ query: e.target.value })}
+            className="h-8"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Search bookmarker's tags and notes</Label>
+          <Input
+            type="text"
+            placeholder="Search bookmarks..."
+            value={filters.bookmarkQuery}
+            onChange={(e) => update({ bookmarkQuery: e.target.value })}
+            className="h-8"
+          />
         </div>
       </CollapsibleSection>
 
@@ -610,47 +487,35 @@ function FilterPanel(props: {
 }
 
 
-// --- Main Page ---
-
-function isUserWorksPage(url: string): boolean {
-  const path = new URL(url).pathname
-  return /^\/users\/[^/]+\/(pseuds\/[^/]+\/)?works/.test(path)
-}
-
-export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
+export function UserBookmarksPage({ doc, url }: { doc: Document; url: string }) {
   const navigate = useNavigate()
-  const data = useMemo(() => parseWorkList(doc), [doc])
-  const initialFilters = useMemo(() => parseFilterParams(url), [url])
-  const sidebar = useMemo(() => parseFilterSidebar(doc), [doc])
-  const tagPage = useMemo(() => isTagPage(new URL(url).pathname), [url])
-  const userPage = useMemo(() => isUserWorksPage(url), [url])
-  const dashboardLinks = useMemo(
-    () => (userPage ? parseDashboardLinks(doc) : []),
-    [doc, userPage],
-  )
+  const data = useMemo(() => parseBookmarkList(doc), [doc])
+  const initialFilters = useMemo(() => parseBookmarkFilterParams(url), [url])
+  const sidebar = useMemo(() => parseBookmarkFilterSidebar(doc), [doc])
+  const dashboardLinks = useMemo(() => parseDashboardLinks(doc), [doc])
 
-  const [filters, setFilters] = useState<FilterState>(initialFilters)
+  const [filters, setFilters] = useState<BookmarkFilterState>(initialFilters)
   const [showFilters, setShowFilters] = useState(false)
 
   function handleSortChange(sortColumn: string) {
     const updated = { ...filters, sortColumn }
-    navigate(buildFilterUrl(url, updated))
+    navigate(buildBookmarkFilterUrl(url, updated))
   }
 
   function handleApplyFilters() {
-    navigate(buildFilterUrl(url, filters))
+    navigate(buildBookmarkFilterUrl(url, filters))
   }
 
   function handleResetFilters() {
-    const reset = defaultFilterState()
-    navigate(buildFilterUrl(url, reset))
+    const reset = defaultBookmarkFilterState()
+    navigate(buildBookmarkFilterUrl(url, reset))
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-      {userPage && dashboardLinks.length > 0 && (
-        <UserDashboardNav links={dashboardLinks} />
-      )}
+      <h1 className="text-2xl font-bold">Bookmarks</h1>
+
+      <UserDashboardNav links={dashboardLinks} />
 
       {/* Toolbar: sort + filter toggle */}
       <div className="flex items-center justify-between">
@@ -692,30 +557,28 @@ export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
 
       {/* Filter panel */}
       {showFilters && (
-        <FilterPanel
+        <BookmarkFilterPanel
           filters={filters}
           onChange={setFilters}
           onApply={handleApplyFilters}
           onReset={handleResetFilters}
           sidebar={sidebar}
-          tagPage={tagPage}
         />
       )}
 
-      {/* Work list */}
+      {/* Bookmark list */}
       <div>
-        {data.works.map((work) => (
-          <WorkCard key={work.id} work={work} />
+        {data.bookmarks.map((bm) => (
+          <BookmarkCard key={bm.bookmarkId} bookmark={bm} />
         ))}
       </div>
 
-      {data.works.length === 0 && (
+      {data.bookmarks.length === 0 && (
         <p className="text-muted-foreground text-center py-8">
-          No works found.
+          No bookmarks found.
         </p>
       )}
 
-      {/* Pagination */}
       <PaginationControls pagination={data.pagination} url={url} />
     </div>
   )

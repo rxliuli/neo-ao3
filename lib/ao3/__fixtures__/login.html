@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Log In | Archive of Our Own</title>
+</head>
+<body>
+  <div id="outer">
+    <div id="inner">
+      <div id="header">
+        <h1><a href="/">Archive of Our Own</a></h1>
+        <ul class="navigation actions" role="navigation">
+          <li><a href="/users/login">Log In</a></li>
+        </ul>
+      </div>
+
+      <div id="main" class="sessions-new region" role="main">
+        <h2 class="heading">Log In</h2>
+        <form action="/users/login" accept-charset="UTF-8" method="post" id="new_user_session">
+          <input type="hidden" name="authenticity_token" value="abc123token456def" />
+          <fieldset>
+            <dl>
+              <dt><label for="user_session_login">Username or email:</label></dt>
+              <dd><input type="text" name="user[login]" id="user_session_login" /></dd>
+              <dt><label for="user_session_password">Password:</label></dt>
+              <dd><input type="password" name="user[password]" id="user_session_password" /></dd>
+              <dt><label for="user_session_remember_me">Remember Me</label></dt>
+              <dd><input name="user[remember_me]" type="hidden" value="0" /><input type="checkbox" value="1" name="user[remember_me]" id="user_session_remember_me" /></dd>
+            </dl>
+          </fieldset>
+          <fieldset>
+            <p class="submit actions">
+              <input type="submit" name="commit" value="Log in" />
+            </p>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,8 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseWorkDetail } from '@/lib/ao3/parseWorkDetail'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import type { Chapter, ChapterNav, WorkDetail } from '@/lib/ao3/types'
+import type { Chapter, WorkDetail } from '@/lib/ao3/types'
+import { ChapterPagination } from '../components/PaginationControls'
 
 function ChapterSection({ chapter }: { chapter: Chapter }) {
   return (
@@ -139,33 +139,6 @@ function CollapsibleTags({ work }: { work: WorkDetail }) {
   )
 }
 
-function ChapterNavigation({ nav }: { nav: ChapterNav }) {
-  return (
-    <nav className="flex items-center justify-between border-t pt-6">
-      <div>
-        {nav.prevUrl ? (
-          <Button variant="outline" asChild>
-            <a href={nav.prevUrl}>&larr; Previous Chapter</a>
-          </Button>
-        ) : (
-          <div />
-        )}
-      </div>
-      <span className="text-sm text-muted-foreground">
-        {nav.currentIndex + 1} / {nav.totalChapters}
-      </span>
-      <div>
-        {nav.nextUrl ? (
-          <Button variant="outline" asChild>
-            <a href={nav.nextUrl}>Next Chapter &rarr;</a>
-          </Button>
-        ) : (
-          <div />
-        )}
-      </div>
-    </nav>
-  )
-}
 
 export function WorkDetailPage({ doc }: { doc: Document }) {
   const work = useMemo(() => parseWorkDetail(doc), [doc])
@@ -254,7 +227,13 @@ export function WorkDetailPage({ doc }: { doc: Document }) {
       )}
 
       {/* Chapter navigation */}
-      {work.chapterNav && <ChapterNavigation nav={work.chapterNav} />}
+      {work.chapterNav && (
+        <ChapterPagination
+          currentIndex={work.chapterNav.currentIndex}
+          totalChapters={work.chapterNav.totalChapters}
+          chapterUrls={work.chapterNav.chapterUrls}
+        />
+      )}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { parseUserProfile } from '@/lib/ao3/parseUserProfile'
 import { Badge } from '@/components/ui/badge'
+import { UserDashboardNav } from '../components/UserDashboardNav'
 import type { WorkBlurb } from '@/lib/ao3/types'
 
 function WorkCard({ work }: { work: WorkBlurb }) {
@@ -64,7 +65,14 @@ export function UserProfilePage({ doc }: { doc: Document }) {
           alt=""
           className="size-16 rounded-full bg-muted"
         />
-        <h1 className="text-2xl font-bold">{profile.username}</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{profile.username}</h1>
+          {profile.joinDate && (
+            <p className="text-sm text-muted-foreground">
+              Joined {profile.joinDate}
+            </p>
+          )}
+        </div>
       </header>
 
       {/* Bio */}
@@ -76,28 +84,35 @@ export function UserProfilePage({ doc }: { doc: Document }) {
       )}
 
       {/* Dashboard tabs */}
-      {profile.dashboardLinks.length > 0 && (
-        <nav className="flex gap-1 border-b">
-          {profile.dashboardLinks.map((link) =>
-            link.isCurrent ? (
-              <span
-                key={link.label}
-                className="text-sm px-3 py-2 border-b-2 border-primary font-medium"
-              >
-                {link.label}
-              </span>
-            ) : (
-              <a
-                key={link.url}
-                href={link.url}
-                className="text-sm px-3 py-2 text-muted-foreground hover:text-foreground border-b-2 border-transparent hover:border-muted-foreground/30"
-              >
-                {link.label}
-              </a>
-            ),
-          )}
-        </nav>
-      )}
+      <UserDashboardNav links={profile.dashboardLinks} />
+
+      {/* Meta info */}
+      <section className="rounded-lg border p-4 space-y-3">
+        {profile.pseuds.length > 0 && (
+          <div className="flex gap-2 text-sm">
+            <span className="text-muted-foreground min-w-[100px]">Pseuds:</span>
+            <div className="flex flex-wrap gap-1">
+              {profile.pseuds.map((p) => (
+                <a key={p.url} href={p.url} className="text-primary hover:underline">
+                  {p.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+        {profile.joinDate && (
+          <div className="flex gap-2 text-sm">
+            <span className="text-muted-foreground min-w-[100px]">Joined:</span>
+            <span>{profile.joinDate}</span>
+          </div>
+        )}
+        {profile.userIdNum && (
+          <div className="flex gap-2 text-sm">
+            <span className="text-muted-foreground min-w-[100px]">User ID:</span>
+            <span>{profile.userIdNum}</span>
+          </div>
+        )}
+      </section>
 
       {/* Fandoms */}
       {profile.fandoms.length > 0 && (

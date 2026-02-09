@@ -29,9 +29,11 @@ function buildPages(currentPage: number, totalPages: number): (number | '...')[]
 export function PaginationControls({
   pagination,
   url,
+  onNavigate,
 }: {
   pagination: Pagination
   url: string
+  onNavigate?: (url: string) => void
 }) {
   const { currentPage, totalPages } = pagination
   if (totalPages <= 1) return null
@@ -46,6 +48,13 @@ export function PaginationControls({
     return u.toString()
   }
 
+  function handleClick(e: React.MouseEvent, href: string) {
+    if (onNavigate) {
+      e.preventDefault()
+      onNavigate(href)
+    }
+  }
+
   const pages = buildPages(currentPage, totalPages)
 
   return (
@@ -53,7 +62,10 @@ export function PaginationControls({
       <PaginationContent>
         {currentPage > 1 && (
           <PaginationItem>
-            <PaginationPrevious href={pageUrl(currentPage - 1)} />
+            <PaginationPrevious
+              href={pageUrl(currentPage - 1)}
+              onClick={(e) => handleClick(e, pageUrl(currentPage - 1))}
+            />
           </PaginationItem>
         )}
         {pages.map((p, i) => (
@@ -61,7 +73,11 @@ export function PaginationControls({
             {p === '...' ? (
               <PaginationEllipsis />
             ) : (
-              <PaginationLink href={pageUrl(p)} isActive={p === currentPage}>
+              <PaginationLink
+                href={pageUrl(p)}
+                isActive={p === currentPage}
+                onClick={(e) => handleClick(e, pageUrl(p))}
+              >
                 {p}
               </PaginationLink>
             )}
@@ -69,7 +85,10 @@ export function PaginationControls({
         ))}
         {currentPage < totalPages && (
           <PaginationItem>
-            <PaginationNext href={pageUrl(currentPage + 1)} />
+            <PaginationNext
+              href={pageUrl(currentPage + 1)}
+              onClick={(e) => handleClick(e, pageUrl(currentPage + 1))}
+            />
           </PaginationItem>
         )}
       </PaginationContent>

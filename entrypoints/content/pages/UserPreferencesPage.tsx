@@ -1,14 +1,20 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   parsePreferences,
   type PreferenceField,
   type PreferenceSection,
 } from '@/lib/ao3/parsePreferences'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { useSetDashboardLinks } from '../components/UserDashboardLayout'
+import { ContentSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 function CheckboxField({
   field,
@@ -91,22 +97,41 @@ function PreferenceSectionUI({
   )
 }
 
-export function UserPreferencesPage({ doc }: { doc: Document }) {
-  const prefs = useMemo(() => parsePreferences(doc), [doc])
-  const dashboardLinks = useMemo(() => parseDashboardLinks(doc), [doc])
+export function UserPreferencesPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const setDashboardLinks = useSetDashboardLinks()
+  const prefs = useMemo(() => doc ? parsePreferences(doc) : null, [doc])
 
-  const [values, setValues] = useState<Record<string, boolean | string>>(() => {
-    const initial: Record<string, boolean | string> = {}
-    for (const section of prefs.sections) {
-      for (const field of section.fields) {
-        initial[field.name] = field.value
-      }
+  useEffect(() => {
+    if (doc) {
+      setCurrentUser(parseCurrentUser(doc))
+      setDashboardLinks(parseDashboardLinks(doc))
     }
-    return initial
-  })
+  }, [doc])
+
+  const [values, setValues] = useState<Record<string, boolean | string>>({})
+
+  // Initialize values when prefs are loaded
+  useEffect(() => {
+    if (prefs) {
+      const initial: Record<string, boolean | string> = {}
+      for (const section of prefs.sections) {
+        for (const field of section.fields) {
+          initial[field.name] = field.value
+        }
+      }
+      setValues(initial)
+    }
+  }, [prefs])
 
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+
+  if (isLoading) return <ContentSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!prefs) return null
 
   function handleChange(name: string, value: boolean | string) {
     setValues((prev) => ({ ...prev, [name]: value }))
@@ -152,11 +177,7 @@ export function UserPreferencesPage({ doc }: { doc: Document }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      <h1 className="text-2xl font-bold">Preferences</h1>
-
-      <UserDashboardNav links={dashboardLinks} />
-
+    <>
       <div className="space-y-6">
         {prefs.sections.map((section) => (
           <PreferenceSectionUI
@@ -180,6 +201,6 @@ export function UserPreferencesPage({ doc }: { doc: Document }) {
           </span>
         )}
       </div>
-    </div>
+    </>
   )
 }

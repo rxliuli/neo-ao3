@@ -1,6 +1,7 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseWorkDetail } from '@/lib/ao3/parseWorkDetail'
 import { parseWorkComments } from '@/lib/ao3/parseComments'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
 import type { Chapter, WorkDetail } from '@/lib/ao3/types'
 import {
@@ -8,6 +9,11 @@ import {
   PaginationControls,
 } from '../components/PaginationControls'
 import { CommentThread } from '../components/CommentThread'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 function ChapterSection({ chapter }: { chapter: Chapter }) {
   return (
@@ -43,7 +49,7 @@ function ChapterSection({ chapter }: { chapter: Chapter }) {
       )}
 
       <div
-        className="prose dark:prose-invert max-w-none leading-relaxed [&_p]:mb-4"
+        className="prose dark:prose-invert max-w-none leading-relaxed [&_p]:mb-4 [&_hr]:my-4"
         dangerouslySetInnerHTML={{ __html: chapter.content }}
       />
 
@@ -145,20 +151,27 @@ function CollapsibleTags({ work }: { work: WorkDetail }) {
 }
 
 
-export function WorkDetailPage({
-  doc,
-  url,
-}: {
-  doc: Document
-  url: string
-}) {
-  const work = useMemo(() => parseWorkDetail(doc), [doc])
-  const initialComments = useMemo(() => parseWorkComments(doc), [doc])
+export function WorkDetailPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const work = useMemo(() => doc ? parseWorkDetail(doc) : null, [doc])
+  const initialComments = useMemo(() => doc ? parseWorkComments(doc) : null, [doc])
+
+  useEffect(() => {
+    if (doc) setCurrentUser(parseCurrentUser(doc))
+  }, [doc])
 
   const [comments, setComments] = useState(initialComments)
-  const [commentsVisible, setCommentsVisible] = useState(
-    initialComments.comments.length > 0,
-  )
+  const [commentsVisible, setCommentsVisible] = useState(false)
+
+  // Sync comments state when initial doc loads
+  useEffect(() => {
+    if (initialComments) {
+      setComments(initialComments)
+      setCommentsVisible(initialComments.comments.length > 0)
+    }
+  }, [initialComments])
   const [loadingComments, setLoadingComments] = useState(false)
 
   const commentPaginationUrl = useMemo(() => {
@@ -198,6 +211,25 @@ export function WorkDetailPage({
     u.hash = ''
     history.replaceState(null, '', u.toString())
   }
+
+  async function handleCommentPage(pageUrl: string) {
+    setLoadingComments(true)
+    try {
+      const response = await fetch(pageUrl)
+      const html = await response.text()
+      const newDoc = new DOMParser().parseFromString(html, 'text/html')
+      const newComments = parseWorkComments(newDoc)
+      setComments(newComments)
+      history.replaceState(null, '', pageUrl)
+      document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })
+    } finally {
+      setLoadingComments(false)
+    }
+  }
+
+  if (isLoading) return <PageSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!work || !comments) return null
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -327,6 +359,7 @@ export function WorkDetailPage({
             <PaginationControls
               pagination={comments.pagination}
               url={commentPaginationUrl}
+              onNavigate={handleCommentPage}
             />
           </>
         )}

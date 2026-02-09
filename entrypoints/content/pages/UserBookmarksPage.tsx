@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseBookmarkList, type BookmarkBlurb } from '@/lib/ao3/parseBookmarkList'
 import {
   parseBookmarkFilterParams,
@@ -12,7 +12,7 @@ import {
 } from '@/lib/ao3/parseBookmarkFilterSidebar'
 import type { TagOption } from '@/lib/ao3/parseFilterSidebar'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,12 @@ import {
 import { ArrowUpDown, SlidersHorizontal, ChevronRight } from 'lucide-react'
 import { useNavigate } from '../navigation'
 import { PaginationControls } from '../components/PaginationControls'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { useSetDashboardLinks } from '../components/UserDashboardLayout'
+import { ContentSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 const SORT_OPTIONS = [
   { label: 'Date Bookmarked', value: 'created_at' },
@@ -487,15 +493,29 @@ function BookmarkFilterPanel(props: {
 }
 
 
-export function UserBookmarksPage({ doc, url }: { doc: Document; url: string }) {
+export function UserBookmarksPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const setDashboardLinks = useSetDashboardLinks()
   const navigate = useNavigate()
-  const data = useMemo(() => parseBookmarkList(doc), [doc])
+  const data = useMemo(() => doc ? parseBookmarkList(doc) : null, [doc])
   const initialFilters = useMemo(() => parseBookmarkFilterParams(url), [url])
-  const sidebar = useMemo(() => parseBookmarkFilterSidebar(doc), [doc])
-  const dashboardLinks = useMemo(() => parseDashboardLinks(doc), [doc])
+  const sidebar = useMemo(() => doc ? parseBookmarkFilterSidebar(doc) : null, [doc])
+
+  useEffect(() => {
+    if (doc) {
+      setCurrentUser(parseCurrentUser(doc))
+      setDashboardLinks(parseDashboardLinks(doc))
+    }
+  }, [doc])
 
   const [filters, setFilters] = useState<BookmarkFilterState>(initialFilters)
   const [showFilters, setShowFilters] = useState(false)
+
+  if (isLoading) return <ContentSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!data) return null
 
   function handleSortChange(sortColumn: string) {
     const updated = { ...filters, sortColumn }
@@ -512,11 +532,7 @@ export function UserBookmarksPage({ doc, url }: { doc: Document; url: string }) 
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-      <h1 className="text-2xl font-bold">Bookmarks</h1>
-
-      <UserDashboardNav links={dashboardLinks} />
-
+    <>
       {/* Toolbar: sort + filter toggle */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
@@ -580,6 +596,6 @@ export function UserBookmarksPage({ doc, url }: { doc: Document; url: string }) 
       )}
 
       <PaginationControls pagination={data.pagination} url={url} />
-    </div>
+    </>
   )
 }

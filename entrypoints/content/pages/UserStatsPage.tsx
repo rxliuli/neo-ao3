@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   parseStats,
   type FandomStat,
@@ -7,7 +7,13 @@ import {
   type YearOption,
 } from '@/lib/ao3/parseStats'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { useSetDashboardLinks } from '../components/UserDashboardLayout'
+import { ContentSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 function TotalsCard({ totals }: { totals: StatsTotals }) {
   const items = [
@@ -109,16 +115,26 @@ function FandomSection({ fandom }: { fandom: FandomStat }) {
   )
 }
 
-export function UserStatsPage({ doc }: { doc: Document }) {
-  const data = useMemo(() => parseStats(doc), [doc])
-  const dashboardLinks = useMemo(() => parseDashboardLinks(doc), [doc])
+export function UserStatsPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const setDashboardLinks = useSetDashboardLinks()
+  const data = useMemo(() => doc ? parseStats(doc) : null, [doc])
+
+  useEffect(() => {
+    if (doc) {
+      setCurrentUser(parseCurrentUser(doc))
+      setDashboardLinks(parseDashboardLinks(doc))
+    }
+  }, [doc])
+
+  if (isLoading) return <ContentSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!data) return null
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-      <h1 className="text-2xl font-bold">Statistics</h1>
-
-      <UserDashboardNav links={dashboardLinks} />
-
+    <>
       <YearNav years={data.years} />
 
       <TotalsCard totals={data.totals} />
@@ -135,6 +151,6 @@ export function UserStatsPage({ doc }: { doc: Document }) {
           No statistics available.
         </p>
       )}
-    </div>
+    </>
   )
 }

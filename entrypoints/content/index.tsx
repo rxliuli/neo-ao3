@@ -1,7 +1,10 @@
 import ReactDOM from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { App } from './App'
+import { queryClient } from './queryClient'
 import styles from './style.css?inline'
 import { matchRoute } from './router'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 
 export default defineContentScript({
   matches: ['*://archiveofourown.org/*'],
@@ -22,6 +25,7 @@ export default defineContentScript({
 
     // Fetch the original page HTML for data parsing (skip for pages that don't need it)
     let doc: Document | null = null
+    let initialUser = null
     if (route.type !== 'home') {
       const response = await fetch(window.location.href)
       if (response.status === 403) {
@@ -34,6 +38,10 @@ export default defineContentScript({
       }
       const html = await response.text()
       doc = new DOMParser().parseFromString(html, 'text/html')
+      initialUser = parseCurrentUser(doc)
+
+      // Pre-seed the query cache so the page doesn't double-fetch
+      queryClient.setQueryData(['ao3-page', window.location.href], doc)
     }
 
     // Mount React
@@ -41,10 +49,12 @@ export default defineContentScript({
     const root = ReactDOM.createRoot(rootEl)
 
     root.render(
-      <App
-        initialRoute={route}
-        initialDoc={doc}
-      />,
+      <QueryClientProvider client={queryClient}>
+        <App
+          initialRoute={route}
+          initialUser={initialUser}
+        />
+      </QueryClientProvider>,
     )
 
     ctx.onInvalidated(() => {

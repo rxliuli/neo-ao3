@@ -1,12 +1,18 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   parseReadingList,
   type ReadingBlurb,
 } from '@/lib/ao3/parseReadingList'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
 import { PaginationControls } from '../components/PaginationControls'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { useSetDashboardLinks } from '../components/UserDashboardLayout'
+import { ContentSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 function ReadingCard({ item }: { item: ReadingBlurb }) {
   const { work, reading } = item
@@ -145,31 +151,35 @@ function ReadingCard({ item }: { item: ReadingBlurb }) {
 }
 
 
-export function UserHistoryPage({
-  doc,
-  url,
-}: {
-  doc: Document
-  url: string
-}) {
-  const data = useMemo(() => parseReadingList(doc), [doc])
-  const dashboardLinks = useMemo(() => parseDashboardLinks(doc), [doc])
+export function UserHistoryPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const setDashboardLinks = useSetDashboardLinks()
+  const data = useMemo(() => doc ? parseReadingList(doc) : null, [doc])
+
+  useEffect(() => {
+    if (doc) {
+      setCurrentUser(parseCurrentUser(doc))
+      setDashboardLinks(parseDashboardLinks(doc))
+    }
+  }, [doc])
+
+  if (isLoading) return <ContentSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!data) return null
 
   // Determine current tab from URL
-  const currentUrl = new URL(url)
-  const isMarkedForLater = currentUrl.searchParams.get('show') === 'to-read'
+  const parsedUrl = new URL(url)
+  const isMarkedForLater = parsedUrl.searchParams.get('show') === 'to-read'
 
   // Build tab URLs
-  const baseUrl = currentUrl.pathname
+  const baseUrl = parsedUrl.pathname
   const fullHistoryUrl = baseUrl
   const markedForLaterUrl = baseUrl + '?show=to-read'
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-      <h1 className="text-2xl font-bold">History</h1>
-
-      <UserDashboardNav links={dashboardLinks} />
-
+    <>
       {/* History tabs */}
       <div className="flex gap-1 border-b">
         <a
@@ -215,6 +225,6 @@ export function UserHistoryPage({
       )}
 
       <PaginationControls pagination={data.pagination} url={url} />
-    </div>
+    </>
   )
 }

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { parseWorkList } from '@/lib/ao3/parseWorkList'
 import {
   parseFilterParams,
@@ -43,8 +43,14 @@ import {
 import { ArrowUpDown, SlidersHorizontal, ChevronRight, CalendarIcon } from 'lucide-react'
 import { format, parse } from 'date-fns'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
+import { useSetDashboardLinksOptional } from '../components/UserDashboardLayout'
 import { useNavigate } from '../navigation'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { PageSkeleton, ContentSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 // --- Constants ---
 
@@ -612,25 +618,33 @@ function FilterPanel(props: {
 
 // --- Main Page ---
 
-function isUserWorksPage(url: string): boolean {
-  const path = new URL(url).pathname
-  return /^\/users\/[^/]+\/(pseuds\/[^/]+\/)?works/.test(path)
-}
-
-export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
+export function WorkListPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const setDashboardLinks = useSetDashboardLinksOptional()
   const navigate = useNavigate()
-  const data = useMemo(() => parseWorkList(doc), [doc])
+  const data = useMemo(() => doc ? parseWorkList(doc) : null, [doc])
   const initialFilters = useMemo(() => parseFilterParams(url), [url])
-  const sidebar = useMemo(() => parseFilterSidebar(doc), [doc])
+  const sidebar = useMemo(() => doc ? parseFilterSidebar(doc) : null, [doc])
   const tagPage = useMemo(() => isTagPage(new URL(url).pathname), [url])
-  const userPage = useMemo(() => isUserWorksPage(url), [url])
-  const dashboardLinks = useMemo(
-    () => (userPage ? parseDashboardLinks(doc) : []),
-    [doc, userPage],
-  )
+  const inDashboard = setDashboardLinks !== null
+
+  useEffect(() => {
+    if (doc) {
+      setCurrentUser(parseCurrentUser(doc))
+      if (setDashboardLinks) {
+        setDashboardLinks(parseDashboardLinks(doc))
+      }
+    }
+  }, [doc])
 
   const [filters, setFilters] = useState<FilterState>(initialFilters)
   const [showFilters, setShowFilters] = useState(false)
+
+  if (isLoading) return inDashboard ? <ContentSkeleton /> : <PageSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!data) return null
 
   function handleSortChange(sortColumn: string) {
     const updated = { ...filters, sortColumn }
@@ -646,12 +660,8 @@ export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
     navigate(buildFilterUrl(url, reset))
   }
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-      {userPage && dashboardLinks.length > 0 && (
-        <UserDashboardNav links={dashboardLinks} />
-      )}
-
+  const content = (
+    <>
       {/* Toolbar: sort + filter toggle */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
@@ -717,6 +727,14 @@ export function WorkListPage({ doc, url }: { doc: Document; url: string }) {
 
       {/* Pagination */}
       <PaginationControls pagination={data.pagination} url={url} />
+    </>
+  )
+
+  if (inDashboard) return content
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+      {content}
     </div>
   )
 }

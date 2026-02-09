@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { DashboardLink } from '@/lib/ao3/parseUserProfile'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
 
 /** Priority order for dashboard tabs — most-used first */
 const TAB_ORDER = [
@@ -23,6 +24,15 @@ function tabPriority(label: string): number {
 }
 
 export function UserDashboardNav({ links }: { links: DashboardLink[] }) {
+  const currentUrl = useCurrentUrl()
+  const currentPath = useMemo(() => {
+    try {
+      return new URL(currentUrl).pathname
+    } catch {
+      return ''
+    }
+  }, [currentUrl])
+
   const sorted = useMemo(
     () => [...links].sort((a, b) => tabPriority(a.label) - tabPriority(b.label)),
     [links],
@@ -32,8 +42,11 @@ export function UserDashboardNav({ links }: { links: DashboardLink[] }) {
 
   return (
     <nav className="flex gap-1 border-b overflow-x-auto">
-      {sorted.map((link) =>
-        link.isCurrent ? (
+      {sorted.map((link) => {
+        const linkPath = new URL(link.url, window.location.origin).pathname
+        const isCurrent = linkPath === currentPath
+
+        return isCurrent ? (
           <span
             key={link.label}
             className="text-sm px-3 py-2 border-b-2 border-primary font-medium shrink-0"
@@ -48,8 +61,8 @@ export function UserDashboardNav({ links }: { links: DashboardLink[] }) {
           >
             {link.label}
           </a>
-        ),
-      )}
+        )
+      })}
     </nav>
   )
 }

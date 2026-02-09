@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,19 +8,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  parseLoginForm,
-  parseCurrentUser,
-  type CurrentUser,
-} from '@/lib/ao3/parseLoginForm'
+import { parseLoginForm, parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { useNavigate } from '../navigation'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
+import { queryClient } from '../queryClient'
 
-export function LoginPage(props: {
-  doc: Document
-  onLoginSuccess: (user: CurrentUser, doc: Document, url: string) => void
-}) {
-  const { authenticityToken } = parseLoginForm(props.doc)
+export function LoginPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error: fetchError } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
   const navigate = useNavigate()
+
+  const loginForm = useMemo(
+    () => (doc ? parseLoginForm(doc) : null),
+    [doc],
+  )
+
+  useEffect(() => {
+    if (doc) setCurrentUser(parseCurrentUser(doc))
+  }, [doc])
 
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
@@ -30,12 +40,13 @@ export function LoginPage(props: {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!loginForm) return
     setError('')
     setSubmitting(true)
 
     try {
       const formData = new FormData()
-      formData.set('authenticity_token', authenticityToken)
+      formData.set('authenticity_token', loginForm.authenticityToken)
       formData.set('user[login]', login)
       formData.set('user[password]', password)
       formData.set('user[remember_me]', rememberMe ? '1' : '0')
@@ -45,13 +56,15 @@ export function LoginPage(props: {
         body: formData,
       })
 
-      // AO3 redirects to user profile on success, stays on /users/login on failure
       if (response.redirected) {
         const html = await response.text()
         const redirectDoc = new DOMParser().parseFromString(html, 'text/html')
         const user = parseCurrentUser(redirectDoc)
         if (user) {
-          props.onLoginSuccess(user, redirectDoc, response.url)
+          setCurrentUser(user)
+          // Pre-seed cache for redirect target
+          queryClient.setQueryData(['ao3-page', response.url], redirectDoc)
+          navigate(response.url)
         } else {
           navigate('/')
         }
@@ -65,6 +78,10 @@ export function LoginPage(props: {
       setSubmitting(false)
     }
   }
+
+  if (isLoading) return <PageSkeleton />
+  if (fetchError) return <PageError error={fetchError} url={url} />
+  if (!loginForm) return null
 
   return (
     <div className="max-w-sm mx-auto px-4 py-16">

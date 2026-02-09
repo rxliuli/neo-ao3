@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDownAZ, ArrowDown01 } from 'lucide-react'
 import { parseFandomList } from '@/lib/ao3/parseFandomList'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,19 +13,32 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 
 type SortBy = 'alpha' | 'count'
 
 const ROW_HEIGHT = 32
 
-export function FandomListPage({ doc }: { doc: Document }) {
-  const data = useMemo(() => parseFandomList(doc), [doc])
+export function FandomListPage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const data = useMemo(() => doc ? parseFandomList(doc) : null, [doc])
+
+  useEffect(() => {
+    if (doc) setCurrentUser(parseCurrentUser(doc))
+  }, [doc])
+
   const [filter, setFilter] = useState('')
   const [sortBy, setSortBy] = useState<SortBy>('alpha')
 
   const allFandoms = useMemo(
-    () => data.groups.flatMap((g) => g.fandoms),
-    [data.groups],
+    () => data ? data.groups.flatMap((g) => g.fandoms) : [],
+    [data],
   )
 
   const displayedFandoms = useMemo(() => {
@@ -44,6 +58,10 @@ export function FandomListPage({ doc }: { doc: Document }) {
     estimateSize: () => ROW_HEIGHT,
     overscan: 20,
   })
+
+  if (isLoading) return <PageSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!data) return null
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">

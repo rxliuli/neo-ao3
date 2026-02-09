@@ -1,7 +1,13 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { parseUserProfile } from '@/lib/ao3/parseUserProfile'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
-import { UserDashboardNav } from '../components/UserDashboardNav'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useSetCurrentUser } from '../auth'
+import { useSetDashboardLinks } from '../components/UserDashboardLayout'
+import { ContentSkeleton } from '../components/PageSkeleton'
+import { PageError } from '../components/PageError'
 import type { WorkBlurb } from '@/lib/ao3/types'
 
 function WorkCard({ work }: { work: WorkBlurb }) {
@@ -53,28 +59,31 @@ function WorkCard({ work }: { work: WorkBlurb }) {
   )
 }
 
-export function UserProfilePage({ doc }: { doc: Document }) {
-  const profile = useMemo(() => parseUserProfile(doc), [doc])
+export function UserProfilePage() {
+  const url = useCurrentUrl()
+  const { data: doc, isLoading, error } = useAo3Page(url)
+  const setCurrentUser = useSetCurrentUser()
+  const setDashboardLinks = useSetDashboardLinks()
+  const profile = useMemo(() => doc ? parseUserProfile(doc) : null, [doc])
+
+  useEffect(() => {
+    if (doc) {
+      setCurrentUser(parseCurrentUser(doc))
+    }
+  }, [doc])
+
+  useEffect(() => {
+    if (profile) {
+      setDashboardLinks(profile.dashboardLinks)
+    }
+  }, [profile])
+
+  if (isLoading) return <ContentSkeleton />
+  if (error) return <PageError error={error} url={url} />
+  if (!profile) return null
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <header className="flex items-center gap-4">
-        <img
-          src={profile.avatarUrl}
-          alt=""
-          className="size-16 rounded-full bg-muted"
-        />
-        <div>
-          <h1 className="text-2xl font-bold">{profile.username}</h1>
-          {profile.joinDate && (
-            <p className="text-sm text-muted-foreground">
-              Joined {profile.joinDate}
-            </p>
-          )}
-        </div>
-      </header>
-
+    <>
       {/* Bio */}
       {profile.bio && (
         <div
@@ -83,10 +92,8 @@ export function UserProfilePage({ doc }: { doc: Document }) {
         />
       )}
 
-      {/* Dashboard tabs */}
-      <UserDashboardNav links={profile.dashboardLinks} />
-
       {/* Meta info */}
+      {(profile.pseuds.length > 0 || profile.joinDate || profile.userIdNum) && (
       <section className="rounded-lg border p-4 space-y-3">
         {profile.pseuds.length > 0 && (
           <div className="flex gap-2 text-sm">
@@ -113,6 +120,7 @@ export function UserProfilePage({ doc }: { doc: Document }) {
           </div>
         )}
       </section>
+      )}
 
       {/* Fandoms */}
       {profile.fandoms.length > 0 && (
@@ -141,6 +149,6 @@ export function UserProfilePage({ doc }: { doc: Document }) {
           </div>
         </section>
       )}
-    </div>
+    </>
   )
 }

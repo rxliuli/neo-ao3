@@ -132,7 +132,7 @@ function CollapsibleTags({ work }: { work: WorkDetail }) {
           >
             <Badge
               variant={tag.variant}
-              className="text-xs hover:bg-accent"
+              className="text-xs hover:opacity-80"
             >
               {tag.label}
             </Badge>
@@ -321,6 +321,7 @@ export function WorkDetailPage() {
           currentIndex={work.chapterNav.currentIndex}
           totalChapters={work.chapterNav.totalChapters}
           chapterUrls={work.chapterNav.chapterUrls}
+          chapterNames={work.chapterNav.chapterNames}
         />
       )}
 

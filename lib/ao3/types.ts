@@ -70,6 +70,7 @@ export interface ChapterNav {
   currentIndex: number
   totalChapters: number
   chapterUrls: string[]
+  chapterNames: string[]
 }
 
 /** Full work detail from individual work pages */

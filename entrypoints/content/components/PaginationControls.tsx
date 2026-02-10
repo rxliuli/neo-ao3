@@ -100,44 +100,52 @@ export function ChapterPagination({
   currentIndex,
   totalChapters,
   chapterUrls,
+  chapterNames,
 }: {
   currentIndex: number
   totalChapters: number
   chapterUrls: string[]
+  chapterNames: string[]
 }) {
   if (totalChapters <= 1) return null
 
-  const currentPage = currentIndex + 1
-  const pages = buildPages(currentPage, totalChapters)
-
   return (
-    <PaginationRoot className="border-t pt-6">
-      <PaginationContent>
-        {currentIndex > 0 && (
-          <PaginationItem>
-            <PaginationPrevious href={chapterUrls[currentIndex - 1]} />
-          </PaginationItem>
-        )}
-        {pages.map((p, i) => (
-          <PaginationItem key={p === '...' ? `ellipsis-${i}` : p}>
-            {p === '...' ? (
-              <PaginationEllipsis />
-            ) : (
-              <PaginationLink
-                href={chapterUrls[(p as number) - 1]}
-                isActive={p === currentPage}
-              >
-                {p}
-              </PaginationLink>
-            )}
-          </PaginationItem>
+    <div className="border-t pt-6 flex items-center justify-center gap-2">
+      <a
+        href={currentIndex > 0 ? chapterUrls[currentIndex - 1] : undefined}
+        aria-disabled={currentIndex === 0}
+        className={`inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 ${
+          currentIndex === 0
+            ? 'pointer-events-none opacity-50'
+            : 'hover:bg-accent hover:text-accent-foreground'
+        }`}
+      >
+        ← Previous
+      </a>
+      <select
+        value={currentIndex}
+        onChange={(e) => {
+          window.location.href = chapterUrls[Number(e.target.value)]
+        }}
+        className="h-9 rounded-md border bg-background px-3 text-sm min-w-0 max-w-xs"
+      >
+        {chapterNames.map((name, i) => (
+          <option key={i} value={i}>
+            {name}
+          </option>
         ))}
-        {currentIndex < totalChapters - 1 && (
-          <PaginationItem>
-            <PaginationNext href={chapterUrls[currentIndex + 1]} />
-          </PaginationItem>
-        )}
-      </PaginationContent>
-    </PaginationRoot>
+      </select>
+      <a
+        href={currentIndex < totalChapters - 1 ? chapterUrls[currentIndex + 1] : undefined}
+        aria-disabled={currentIndex >= totalChapters - 1}
+        className={`inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 ${
+          currentIndex >= totalChapters - 1
+            ? 'pointer-events-none opacity-50'
+            : 'hover:bg-accent hover:text-accent-foreground'
+        }`}
+      >
+        Next →
+      </a>
+    </div>
   )
 }

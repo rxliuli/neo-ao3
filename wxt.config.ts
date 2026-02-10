@@ -22,7 +22,7 @@ export default defineConfig({
       name: 'NeoAO3',
       description:
         'A template for WXT, a WebExtension framework based on Vite and React',
-      permissions: ['storage', 'contextMenus'],
+      permissions: ['storage'],
       host_permissions: [],
       author: {
         email: 'rxliuli@gmail.com',

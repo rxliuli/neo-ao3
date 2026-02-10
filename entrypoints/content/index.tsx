@@ -13,7 +13,34 @@ export default defineContentScript({
 
   async main(ctx) {
     const route = matchRoute(window.location.href)
-    if (!route) return
+    if (!route) {
+      // In original mode, intercept links to propagate the ?neo-ao3-original param
+      const currentUrl = new URL(window.location.href)
+      if (currentUrl.searchParams.has('neo-ao3-original')) {
+        document.addEventListener('click', (e) => {
+          const anchor = (e.target as Element).closest?.('a')
+          if (!anchor) return
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+          if (anchor.target && anchor.target !== '_self') return
+
+          const href = anchor.getAttribute('href')
+          if (!href) return
+
+          try {
+            const linkUrl = new URL(href, window.location.origin)
+            if (linkUrl.origin !== window.location.origin) return
+            if (linkUrl.searchParams.has('neo-ao3-original')) return
+
+            e.preventDefault()
+            linkUrl.searchParams.set('neo-ao3-original', '')
+            window.location.href = linkUrl.toString()
+          } catch {
+            // Invalid URL, let browser handle it
+          }
+        })
+      }
+      return
+    }
 
     // Stop the page from loading any more resources (CSS, images, scripts)
     window.stop()

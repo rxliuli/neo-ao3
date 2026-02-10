@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { DashboardLink } from '@/lib/ao3/parseUserProfile'
 import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { matchRoute } from '../router'
 
 /** Priority order for dashboard tabs — most-used first */
 const TAB_ORDER = [
@@ -34,7 +35,10 @@ export function UserDashboardNav({ links }: { links: DashboardLink[] }) {
   }, [currentUrl])
 
   const sorted = useMemo(
-    () => [...links].sort((a, b) => tabPriority(a.label) - tabPriority(b.label)),
+    () =>
+      [...links]
+        .filter((link) => matchRoute(new URL(link.url, window.location.origin).href) !== null)
+        .sort((a, b) => tabPriority(a.label) - tabPriority(b.label)),
     [links],
   )
 

@@ -14,6 +14,7 @@ import { UserInboxPage } from './pages/UserInboxPage'
 import { UserStatsPage } from './pages/UserStatsPage'
 import { LoginPage } from './pages/LoginPage'
 import { CommentPage } from './pages/CommentPage'
+import { TagPage } from './pages/TagPage'
 import { NavigationProvider } from './navigation'
 import { CurrentUserProviderWithState } from './auth'
 import { UrlProvider } from './hooks/useCurrentUrl'
@@ -152,6 +153,7 @@ export function App(props: {
               <>
                 {route.type === 'home' && <HomePage key={currentUrl} />}
                 {route.type === 'login' && <LoginPage key={currentUrl} />}
+                {route.type === 'tag-page' && <TagPage key={currentUrl} />}
                 {route.type === 'work-list' && <WorkListPage key={currentUrl} />}
                 {route.type === 'work-detail' && <WorkDetailPage key={currentUrl} />}
                 {route.type === 'comment-show' && <CommentPage key={currentUrl} />}

@@ -1,5 +1,6 @@
 export type Route =
   | { type: 'home' }
+  | { type: 'tag-page' }
   | { type: 'work-list' }
   | { type: 'work-detail'; workId: string }
   | { type: 'comment-show'; workId: string; commentId: string }
@@ -36,6 +37,11 @@ export function matchRoute(url: string): Route | null {
   const workDetailMatch = path.match(/^\/works\/(\d+)(\/chapters\/\d+)?$/)
   if (workDetailMatch) {
     return { type: 'work-detail', workId: workDetailMatch[1] }
+  }
+
+  // Tag page: /tags/{tagName} (bare tag, no sub-path like /works)
+  if (/^\/tags\/[^/]+$/.test(path)) {
+    return { type: 'tag-page' }
   }
 
   // Work list: /tags/*/works, /works/search, /users/*/works, /users/*/pseuds/*/works

@@ -13,6 +13,7 @@ import { CommentThread } from '../components/CommentThread'
 import { useAo3Page } from '../hooks/useAo3Page'
 import { useCurrentUrl } from '../hooks/useCurrentUrl'
 import { useSetCurrentUser } from '../auth'
+import { useNavigate } from '../navigation'
 import { PageSkeleton } from '../components/PageSkeleton'
 import { PageError } from '../components/PageError'
 
@@ -154,10 +155,20 @@ function CollapsibleTags({ work }: { work: WorkDetail }) {
 
 export function WorkDetailPage() {
   const url = useCurrentUrl()
-  const { data: doc, isLoading, error } = useAo3Page(url)
+  const { data: doc, isLoading, isPlaceholderData, error } = useAo3Page(url)
   const setCurrentUser = useSetCurrentUser()
+  const navigate = useNavigate()
   const work = useMemo(() => doc ? parseWorkDetail(doc) : null, [doc])
   const initialComments = useMemo(() => doc ? parseWorkComments(doc) : null, [doc])
+  const prevUrlRef = useRef(url)
+
+  // Scroll to top after new chapter data finishes loading
+  useEffect(() => {
+    if (prevUrlRef.current !== url && !isPlaceholderData) {
+      prevUrlRef.current = url
+      window.scrollTo(0, 0)
+    }
+  }, [url, isPlaceholderData])
 
   useEffect(() => {
     if (doc) setCurrentUser(parseCurrentUser(doc))
@@ -228,7 +239,7 @@ export function WorkDetailPage() {
     }
   }
 
-  if (isLoading) return <PageSkeleton />
+  if (isLoading && !isPlaceholderData) return <PageSkeleton />
   if (error) return <PageError error={error} url={url} />
   if (!work || !comments) return null
 
@@ -322,6 +333,7 @@ export function WorkDetailPage() {
           totalChapters={work.chapterNav.totalChapters}
           chapterUrls={work.chapterNav.chapterUrls}
           chapterNames={work.chapterNav.chapterNames}
+          onNavigate={navigate}
         />
       )}
 

@@ -70,10 +70,20 @@ export function App(props: {
       return
     }
 
+    const prevRoute = matchRoute(window.location.href)
     history.pushState(null, '', resolved)
     setRoute(matched)
     setCurrentUrl(resolved)
-    window.scrollTo(0, 0)
+
+    // Skip scroll-to-top for same-work chapter navigation;
+    // WorkDetailPage handles scroll after new data loads
+    const isSameWorkChapterNav =
+      prevRoute?.type === 'work-detail' &&
+      matched.type === 'work-detail' &&
+      prevRoute.workId === matched.workId
+    if (!isSameWorkChapterNav) {
+      window.scrollTo(0, 0)
+    }
   }, [])
 
   // Global <a> click interceptor
@@ -155,7 +165,7 @@ export function App(props: {
                 {route.type === 'login' && <LoginPage key={currentUrl} />}
                 {route.type === 'tag-page' && <TagPage key={currentUrl} />}
                 {route.type === 'work-list' && <WorkListPage key={currentUrl} />}
-                {route.type === 'work-detail' && <WorkDetailPage key={currentUrl} />}
+                {route.type === 'work-detail' && <WorkDetailPage key={route.workId} />}
                 {route.type === 'comment-show' && <CommentPage key={currentUrl} />}
                 {route.type === 'fandom-list' && <FandomListPage key={currentUrl} />}
               </>

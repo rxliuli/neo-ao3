@@ -8,6 +8,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/select'
 
 function buildPages(currentPage: number, totalPages: number): (number | '...')[] {
   const pages: (number | '...')[] = []
@@ -101,51 +103,59 @@ export function ChapterPagination({
   totalChapters,
   chapterUrls,
   chapterNames,
+  onNavigate,
 }: {
   currentIndex: number
   totalChapters: number
   chapterUrls: string[]
   chapterNames: string[]
+  onNavigate?: (url: string) => void
 }) {
   if (totalChapters <= 1) return null
 
+  function handleNavClick(e: React.MouseEvent, url: string) {
+    if (onNavigate) {
+      e.preventDefault()
+      onNavigate(url)
+    }
+  }
+
   return (
     <div className="border-t pt-6 flex items-center justify-center gap-2">
-      <a
-        href={currentIndex > 0 ? chapterUrls[currentIndex - 1] : undefined}
-        aria-disabled={currentIndex === 0}
-        className={`inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 ${
-          currentIndex === 0
-            ? 'pointer-events-none opacity-50'
-            : 'hover:bg-accent hover:text-accent-foreground'
-        }`}
-      >
-        ← Previous
-      </a>
-      <select
+      <Button variant="ghost" size="sm" asChild disabled={currentIndex === 0}>
+        <a
+          href={currentIndex > 0 ? chapterUrls[currentIndex - 1] : undefined}
+          onClick={(e) => currentIndex > 0 && handleNavClick(e, chapterUrls[currentIndex - 1])}
+        >
+          ← Previous
+        </a>
+      </Button>
+      <Select
         value={currentIndex}
         onChange={(e) => {
-          window.location.href = chapterUrls[Number(e.target.value)]
+          const url = chapterUrls[Number(e.target.value)]
+          if (onNavigate) {
+            onNavigate(url)
+          } else {
+            window.location.href = url
+          }
         }}
-        className="h-9 rounded-md border bg-background px-3 text-sm min-w-0 max-w-xs"
+        className="min-w-0 max-w-xs w-auto"
       >
         {chapterNames.map((name, i) => (
           <option key={i} value={i}>
             {name}
           </option>
         ))}
-      </select>
-      <a
-        href={currentIndex < totalChapters - 1 ? chapterUrls[currentIndex + 1] : undefined}
-        aria-disabled={currentIndex >= totalChapters - 1}
-        className={`inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 ${
-          currentIndex >= totalChapters - 1
-            ? 'pointer-events-none opacity-50'
-            : 'hover:bg-accent hover:text-accent-foreground'
-        }`}
-      >
-        Next →
-      </a>
+      </Select>
+      <Button variant="ghost" size="sm" asChild disabled={currentIndex >= totalChapters - 1}>
+        <a
+          href={currentIndex < totalChapters - 1 ? chapterUrls[currentIndex + 1] : undefined}
+          onClick={(e) => currentIndex < totalChapters - 1 && handleNavClick(e, chapterUrls[currentIndex + 1])}
+        >
+          Next →
+        </a>
+      </Button>
     </div>
   )
 }

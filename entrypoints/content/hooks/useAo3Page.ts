@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 async function fetchAo3Document(url: string, signal: AbortSignal) {
   const response = await fetch(url, { signal })
@@ -15,5 +15,6 @@ export function useAo3Page(url: string) {
   return useQuery({
     queryKey: ['ao3-page', url],
     queryFn: ({ signal }) => fetchAo3Document(url, signal),
+    placeholderData: keepPreviousData,
   })
 }

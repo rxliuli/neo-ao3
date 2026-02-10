@@ -52,6 +52,11 @@ export default defineContentScript({
     // Stop the page from loading any more resources (CSS, images, scripts)
     window.stop()
 
+    // Yield to the event loop so the browser can release connections
+    // canceled by window.stop(). Without this, fetch() can hang indefinitely
+    // in some browsers due to connection pool exhaustion.
+    await new Promise((r) => setTimeout(r, 0))
+
     // Replace document with our minimal shell
     document.documentElement.innerHTML =
       `<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>${styles}</style></head>` +

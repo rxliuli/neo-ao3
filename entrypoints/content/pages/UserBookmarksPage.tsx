@@ -11,6 +11,7 @@ import {
   type BookmarkFilterSidebar,
 } from '@/lib/ao3/parseBookmarkFilterSidebar'
 import type { TagOption } from '@/lib/ao3/parseFilterSidebar'
+import { tagWorksUrl } from '@/lib/ao3/tagUrl'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
 import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
@@ -133,7 +134,7 @@ function BookmarkCard({ bookmark }: { bookmark: BookmarkBlurb }) {
             {allTags.map((tag) => (
               <a
                 key={tag.label}
-                href={`/tags/${encodeURIComponent(tag.label)}/works`}
+                href={tagWorksUrl(tag.label)}
               >
                 <Badge
                   variant={tag.isFandom ? 'secondary' : 'outline'}

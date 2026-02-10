@@ -1,4 +1,5 @@
 import type { Pagination } from './types'
+import { toISODate } from './date'
 
 export interface InboxComment {
   id: string
@@ -90,7 +91,7 @@ export function parseInbox(doc: Document): InboxPage {
 
     // Date
     const dateEl = byline?.querySelector('.posted.datetime')
-    const date = dateEl?.textContent?.trim() ?? ''
+    const date = toISODate(dateEl?.textContent?.trim() ?? '')
 
     // Avatar
     const iconEl = el.querySelector('.icon img')

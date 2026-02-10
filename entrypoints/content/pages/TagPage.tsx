@@ -8,6 +8,7 @@ import { useSetCurrentUser } from '../auth'
 import { PageSkeleton } from '../components/PageSkeleton'
 import { PageError } from '../components/PageError'
 import { Badge } from '@/components/ui/badge'
+import { encodeTagName } from '@/lib/ao3/tagUrl'
 
 export function TagPage() {
   const url = useCurrentUrl()
@@ -37,7 +38,7 @@ export function TagPage() {
         {data.parentTags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {data.parentTags.map((tag) => (
-              <a key={tag} href={`/tags/${encodeURIComponent(tag)}`}>
+              <a key={tag} href={`/tags/${encodeTagName(tag)}`}>
                 <Badge variant="secondary" className="text-xs hover:bg-accent">
                   {tag}
                 </Badge>

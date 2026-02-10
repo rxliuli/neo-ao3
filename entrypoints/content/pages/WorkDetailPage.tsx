@@ -3,6 +3,7 @@ import { parseWorkDetail } from '@/lib/ao3/parseWorkDetail'
 import { parseWorkComments } from '@/lib/ao3/parseComments'
 import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
+import { tagWorksUrl } from '@/lib/ao3/tagUrl'
 import type { Chapter, WorkDetail } from '@/lib/ao3/types'
 import {
   ChapterPagination,
@@ -49,7 +50,7 @@ function ChapterSection({ chapter }: { chapter: Chapter }) {
       )}
 
       <div
-        className="prose dark:prose-invert max-w-none leading-relaxed [&_p]:mb-4 [&_hr]:my-4"
+        className="prose dark:prose-invert max-w-none leading-relaxed [&_p]:mb-4 [&_hr]:my-4 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_li]:my-1 [&_ul_ul]:pl-6 [&_ul_ol]:pl-6 [&_ol_ul]:pl-6 [&_ol_ol]:pl-6"
         dangerouslySetInnerHTML={{ __html: chapter.content }}
       />
 
@@ -127,7 +128,7 @@ function CollapsibleTags({ work }: { work: WorkDetail }) {
         {allTags.map((tag) => (
           <a
             key={tag.label}
-            href={`/tags/${encodeURIComponent(tag.label)}/works`}
+            href={tagWorksUrl(tag.label)}
           >
             <Badge
               variant={tag.variant}

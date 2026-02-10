@@ -7,6 +7,7 @@ import type {
   WorkStats,
   WorkTags,
 } from './types'
+import { toISODate } from './date'
 
 function parseNum(text: string | null | undefined): number {
   return parseInt(text?.replace(/,/g, '') ?? '0', 10) || 0
@@ -16,23 +17,14 @@ function textOf(el: Element | null): string {
   return el?.textContent?.trim() ?? ''
 }
 
-const MONTHS: Record<string, string> = {
-  Jan: '01', Feb: '02', Mar: '03', Apr: '04',
-  May: '05', Jun: '06', Jul: '07', Aug: '08',
-  Sep: '09', Oct: '10', Nov: '11', Dec: '12',
-}
-
-function toISODate(raw: string): string {
-  const m = raw.match(/^(\d{2})\s+(\w{3})\s+(\d{4})$/)
-  if (!m) return raw
-  return `${m[3]}-${MONTHS[m[2]] ?? '01'}-${m[1]}`
-}
-
 export function parseWorkBlurb(el: Element): WorkBlurb {
-  const id = el.id.replace('work_', '')
-
   // Title
   const titleEl = el.querySelector('.header.module h4.heading a:first-child')
+
+  // Work ID: from element id (work list) or from title link href (bookmark list)
+  const id = el.id.startsWith('work_')
+    ? el.id.replace('work_', '')
+    : titleEl?.getAttribute('href')?.match(/\/works\/(\d+)/)?.[1] ?? el.id
   const title = textOf(titleEl)
 
   // Authors

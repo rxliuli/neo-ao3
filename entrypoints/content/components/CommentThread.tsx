@@ -54,6 +54,7 @@ function CommentCard({
                 {comment.date}
               </span>
             </div>
+
             <div
               className="text-sm [&_p]:mb-2 [&_p:last-child]:mb-0"
               dangerouslySetInnerHTML={{ __html: comment.content }}
@@ -77,13 +78,21 @@ function CommentCard({
   )
 }
 
-export function CommentThread({ comments }: { comments: WorkComment[] }) {
+export function CommentThread({
+  comments,
+}: {
+  comments: WorkComment[]
+}) {
   if (comments.length === 0) return null
 
   return (
     <div className="divide-y">
       {comments.map((comment) => (
-        <CommentCard key={comment.id} comment={comment} depth={0} />
+        <CommentCard
+          key={comment.id}
+          comment={comment}
+          depth={0}
+        />
       ))}
     </div>
   )

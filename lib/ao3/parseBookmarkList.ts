@@ -1,3 +1,4 @@
+import { toISODate } from './date'
 import type {
   Author,
   Pagination,
@@ -44,7 +45,8 @@ function parseBookmarkMeta(el: Element): BookmarkMeta {
   const bookmarkerUrl = bylineLink?.getAttribute('href') ?? ''
 
   const dateEl = userModule.querySelector('p.datetime')
-  const bookmarkDate = dateEl?.textContent?.trim() ?? ''
+  const rawDate = dateEl?.textContent?.trim() ?? ''
+  const bookmarkDate = toISODate(rawDate)
 
   // Check for rec
   const isRec = !!userModule.querySelector('.rec')

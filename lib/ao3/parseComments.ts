@@ -9,6 +9,12 @@ export interface WorkComment {
   content: string
   chapterRef?: { title: string; url: string }
   children: WorkComment[]
+  canReply: boolean
+  canEdit: boolean
+  canDelete: boolean
+  editUrl?: string
+  deleteAction?: string
+  deleteToken?: string
 }
 
 export interface CommentsData {
@@ -62,6 +68,27 @@ function parseOneComment(li: Element): WorkComment {
   const content =
     li.querySelector('blockquote.userstuff')?.innerHTML?.trim() ?? ''
 
+  // Parse action links
+  const actions = li.querySelector('ul.actions')
+  const editLink = actions?.querySelector('a[href*="/edit"]')
+  const editUrl = editLink?.getAttribute('href') ?? undefined
+  const canEdit = !!editUrl
+
+  const deleteForm = actions?.querySelector('form')
+  let deleteAction: string | undefined
+  let deleteToken: string | undefined
+  if (deleteForm) {
+    const methodInput = deleteForm.querySelector<HTMLInputElement>('input[name="_method"][value="delete"]')
+    if (methodInput) {
+      deleteAction = deleteForm.getAttribute('action') ?? undefined
+      deleteToken = deleteForm.querySelector<HTMLInputElement>('input[name="authenticity_token"]')?.value
+    }
+  }
+  const canDelete = !!deleteAction
+
+  const replyLink = actions?.querySelector('a.reply')
+  const canReply = !!replyLink
+
   return {
     id,
     authorName,
@@ -71,6 +98,12 @@ function parseOneComment(li: Element): WorkComment {
     content,
     chapterRef,
     children: [],
+    canReply,
+    canEdit,
+    canDelete,
+    editUrl,
+    deleteAction,
+    deleteToken,
   }
 }
 

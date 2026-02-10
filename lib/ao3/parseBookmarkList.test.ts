@@ -50,7 +50,7 @@ describe('parseBookmarkList', () => {
     })
 
     it('should parse bookmark date', () => {
-      expect(bm.bookmark.bookmarkDate).toBe('25 Nov 2024')
+      expect(bm.bookmark.bookmarkDate).toBe('2024-11-25')
     })
 
     it('should detect rec status', () => {

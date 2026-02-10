@@ -6,6 +6,7 @@ import {
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
 import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
+import { tagWorksUrl } from '@/lib/ao3/tagUrl'
 import { PaginationControls } from '../components/PaginationControls'
 import { useAo3Page } from '../hooks/useAo3Page'
 import { useCurrentUrl } from '../hooks/useCurrentUrl'
@@ -94,7 +95,7 @@ function ReadingCard({ item }: { item: ReadingBlurb }) {
             {allTags.map((tag) => (
               <a
                 key={tag.label}
-                href={`/tags/${encodeURIComponent(tag.label)}/works`}
+                href={tagWorksUrl(tag.label)}
               >
                 <Badge
                   variant={tag.isFandom ? 'secondary' : 'outline'}

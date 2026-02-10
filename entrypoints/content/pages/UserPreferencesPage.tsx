@@ -6,6 +6,7 @@ import {
 } from '@/lib/ao3/parsePreferences'
 import { parseDashboardLinks } from '@/lib/ao3/parseUserProfile'
 import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
+import { submitAo3Form } from '@/lib/ao3/submitAo3Form'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
@@ -143,25 +144,23 @@ export function UserPreferencesPage() {
     setMessage(null)
 
     try {
-      const formData = new URLSearchParams()
-      formData.set('authenticity_token', prefs.authenticityToken)
-      formData.set('_method', 'put')
-
+      const fields: Record<string, string> = {}
       for (const [name, value] of Object.entries(values)) {
         if (typeof value === 'boolean') {
           if (value) {
-            formData.set(name, '1')
+            fields[name] = '1'
           }
           // Unchecked checkboxes: don't send (AO3 convention)
         } else {
-          formData.set(name, value)
+          fields[name] = value
         }
       }
 
-      const response = await fetch(prefs.formAction, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString(),
+      const response = await submitAo3Form({
+        action: prefs.formAction,
+        token: prefs.authenticityToken,
+        method: 'put',
+        fields,
       })
 
       if (response.ok) {

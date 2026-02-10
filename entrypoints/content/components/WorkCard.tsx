@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { WorkBlurb } from '@/lib/ao3/types'
+import { tagWorksUrl } from '@/lib/ao3/tagUrl'
 import { Badge } from '@/components/ui/badge'
 
 export function WorkCard({ work }: { work: WorkBlurb }) {
@@ -82,7 +83,7 @@ export function WorkCard({ work }: { work: WorkBlurb }) {
             {allTags.map((tag) => (
               <a
                 key={tag.label}
-                href={`/tags/${encodeURIComponent(tag.label)}/works`}
+                href={tagWorksUrl(tag.label)}
               >
                 <Badge
                   variant={tag.isFandom ? 'secondary' : 'outline'}

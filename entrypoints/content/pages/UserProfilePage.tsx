@@ -2,9 +2,11 @@ import { useEffect, useMemo } from 'react'
 import { parseUserProfile } from '@/lib/ao3/parseUserProfile'
 import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
+import { tagWorksUrl } from '@/lib/ao3/tagUrl'
+import { Button } from '@/components/ui/button'
 import { useAo3Page } from '../hooks/useAo3Page'
 import { useCurrentUrl } from '../hooks/useCurrentUrl'
-import { useSetCurrentUser } from '../auth'
+import { useCurrentUser, useSetCurrentUser } from '../auth'
 import { useSetDashboardLinks } from '../components/UserDashboardLayout'
 import { ContentSkeleton } from '../components/PageSkeleton'
 import { PageError } from '../components/PageError'
@@ -27,7 +29,7 @@ function WorkCard({ work }: { work: WorkBlurb }) {
       {work.fandoms.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {work.fandoms.map((f) => (
-            <a key={f} href={`/tags/${encodeURIComponent(f)}/works`}>
+            <a key={f} href={tagWorksUrl(f)}>
               <Badge variant="secondary" className="text-xs hover:bg-accent">
                 {f}
               </Badge>
@@ -62,9 +64,16 @@ function WorkCard({ work }: { work: WorkBlurb }) {
 export function UserProfilePage() {
   const url = useCurrentUrl()
   const { data: doc, isLoading, error } = useAo3Page(url)
+  const currentUser = useCurrentUser()
   const setCurrentUser = useSetCurrentUser()
   const setDashboardLinks = useSetDashboardLinks()
   const profile = useMemo(() => doc ? parseUserProfile(doc) : null, [doc])
+  const profileUsername = useMemo(() => {
+    try {
+      return new URL(url).pathname.match(/^\/users\/([^/]+)/)?.[1] ?? null
+    } catch { return null }
+  }, [url])
+  const isOwnProfile = !!(currentUser?.username && profileUsername && currentUser.username === decodeURIComponent(profileUsername))
 
   useEffect(() => {
     if (doc) {

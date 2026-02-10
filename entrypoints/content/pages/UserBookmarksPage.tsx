@@ -17,6 +17,7 @@ import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TagAutocomplete, stringToTags, tagsToString } from '../components/TagAutocomplete'
 import { Label } from '@/components/ui/label'
 import {
   Collapsible,
@@ -339,22 +340,18 @@ function BookmarkFilterPanel(props: {
         )}
         <div className="space-y-1.5">
           <Label>Other work tags to include</Label>
-          <Input
-            type="text"
-            placeholder="Tag names, comma separated"
-            value={filters.otherTagsToInclude}
-            onChange={(e) => update({ otherTagsToInclude: e.target.value })}
-            className="h-8"
+          <TagAutocomplete
+            value={stringToTags(filters.otherTagsToInclude)}
+            onChange={(tags) => update({ otherTagsToInclude: tagsToString(tags) })}
+            placeholder="Type to search tags..."
           />
         </div>
         <div className="space-y-1.5">
           <Label>Other bookmarker's tags to include</Label>
-          <Input
-            type="text"
-            placeholder="Tag names, comma separated"
-            value={filters.otherBookmarkTagsToInclude}
-            onChange={(e) => update({ otherBookmarkTagsToInclude: e.target.value })}
-            className="h-8"
+          <TagAutocomplete
+            value={stringToTags(filters.otherBookmarkTagsToInclude)}
+            onChange={(tags) => update({ otherBookmarkTagsToInclude: tagsToString(tags) })}
+            placeholder="Type to search tags..."
           />
         </div>
       </CollapsibleSection>
@@ -415,22 +412,18 @@ function BookmarkFilterPanel(props: {
         )}
         <div className="space-y-1.5">
           <Label>Other work tags to exclude</Label>
-          <Input
-            type="text"
-            placeholder="Tag names, comma separated"
-            value={filters.otherTagsToExclude}
-            onChange={(e) => update({ otherTagsToExclude: e.target.value })}
-            className="h-8"
+          <TagAutocomplete
+            value={stringToTags(filters.otherTagsToExclude)}
+            onChange={(tags) => update({ otherTagsToExclude: tagsToString(tags) })}
+            placeholder="Type to search tags..."
           />
         </div>
         <div className="space-y-1.5">
           <Label>Other bookmarker's tags to exclude</Label>
-          <Input
-            type="text"
-            placeholder="Tag names, comma separated"
-            value={filters.otherBookmarkTagsToExclude}
-            onChange={(e) => update({ otherBookmarkTagsToExclude: e.target.value })}
-            className="h-8"
+          <TagAutocomplete
+            value={stringToTags(filters.otherBookmarkTagsToExclude)}
+            onChange={(tags) => update({ otherBookmarkTagsToExclude: tagsToString(tags) })}
+            placeholder="Type to search tags..."
           />
         </div>
       </CollapsibleSection>

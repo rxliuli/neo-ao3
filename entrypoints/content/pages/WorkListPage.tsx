@@ -16,6 +16,7 @@ import { PaginationControls } from '../components/PaginationControls'
 import { WorkCard } from '../components/WorkCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TagAutocomplete, stringToTags, tagsToString } from '../components/TagAutocomplete'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from '@/components/ui/multi-select'
@@ -120,35 +121,29 @@ const CROSSOVER_OPTIONS = [
 
 // --- Sub-components ---
 
-function TagCheckboxGroup(props: {
+function TagMultiSelect(props: {
   label: string
   options: TagOption[]
   selected: string[]
   onChange: (selected: string[]) => void
 }) {
   if (props.options.length === 0) return null
+  const msOptions = props.options.map((opt) => ({
+    label: `${opt.name} (${opt.count})`,
+    value: opt.id,
+  }))
   return (
     <div className="space-y-1.5">
       <Label>{props.label}</Label>
-      <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
-        {props.options.map((opt) => (
-          <label key={opt.id} className="flex items-center gap-1.5 text-sm">
-            <input
-              type="checkbox"
-              checked={props.selected.includes(opt.id)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  props.onChange([...props.selected, opt.id])
-                } else {
-                  props.onChange(props.selected.filter((v) => v !== opt.id))
-                }
-              }}
-            />
-            <span className="truncate">{opt.name}</span>
-            <span className="text-muted-foreground ml-auto shrink-0">({opt.count})</span>
-          </label>
-        ))}
-      </div>
+      <MultiSelect
+        options={msOptions}
+        defaultValue={props.selected}
+        onValueChange={props.onChange}
+        placeholder="Any"
+        maxCount={2}
+        hideSelectAll
+        popoverClassName="!w-(--radix-popover-trigger-width) !min-w-0"
+      />
     </div>
   )
 }
@@ -337,25 +332,25 @@ function FilterPanel(props: {
       <CollapsibleSection title="Include Tags">
         {sidebar && (
           <>
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Fandoms"
               options={sidebar.includeFandoms}
               selected={filters.includeFandomIds}
               onChange={(includeFandomIds) => update({ includeFandomIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Characters"
               options={sidebar.includeCharacters}
               selected={filters.includeCharacterIds}
               onChange={(includeCharacterIds) => update({ includeCharacterIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Relationships"
               options={sidebar.includeRelationships}
               selected={filters.includeRelationshipIds}
               onChange={(includeRelationshipIds) => update({ includeRelationshipIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Additional Tags"
               options={sidebar.includeFreeforms}
               selected={filters.includeFreeformIds}
@@ -365,12 +360,10 @@ function FilterPanel(props: {
         )}
         <div className="space-y-1.5">
           <Label>Other tags to include</Label>
-          <Input
-            type="text"
-            placeholder="Tag names, comma separated"
-            value={filters.otherTagsToInclude}
-            onChange={(e) => update({ otherTagsToInclude: e.target.value })}
-            className="h-8"
+          <TagAutocomplete
+            value={stringToTags(filters.otherTagsToInclude)}
+            onChange={(tags) => update({ otherTagsToInclude: tagsToString(tags) })}
+            placeholder="Type to search tags..."
           />
         </div>
       </CollapsibleSection>
@@ -379,43 +372,43 @@ function FilterPanel(props: {
       <CollapsibleSection title="Exclude Tags">
         {sidebar && (
           <>
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Ratings"
               options={sidebar.excludeRatings}
               selected={filters.excludeRatingIds}
               onChange={(excludeRatingIds) => update({ excludeRatingIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Warnings"
               options={sidebar.excludeWarnings}
               selected={filters.excludeWarningIds}
               onChange={(excludeWarningIds) => update({ excludeWarningIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Categories"
               options={sidebar.excludeCategories}
               selected={filters.excludeCategoryIds}
               onChange={(excludeCategoryIds) => update({ excludeCategoryIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Fandoms"
               options={sidebar.excludeFandoms}
               selected={filters.excludeFandomIds}
               onChange={(excludeFandomIds) => update({ excludeFandomIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Characters"
               options={sidebar.excludeCharacters}
               selected={filters.excludeCharacterIds}
               onChange={(excludeCharacterIds) => update({ excludeCharacterIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Relationships"
               options={sidebar.excludeRelationships}
               selected={filters.excludeRelationshipIds}
               onChange={(excludeRelationshipIds) => update({ excludeRelationshipIds })}
             />
-            <TagCheckboxGroup
+            <TagMultiSelect
               label="Additional Tags"
               options={sidebar.excludeFreeforms}
               selected={filters.excludeFreeformIds}
@@ -425,12 +418,10 @@ function FilterPanel(props: {
         )}
         <div className="space-y-1.5">
           <Label>Other tags to exclude</Label>
-          <Input
-            type="text"
-            placeholder="Tag names, comma separated"
-            value={filters.otherTagsToExclude}
-            onChange={(e) => update({ otherTagsToExclude: e.target.value })}
-            className="h-8"
+          <TagAutocomplete
+            value={stringToTags(filters.otherTagsToExclude)}
+            onChange={(tags) => update({ otherTagsToExclude: tagsToString(tags) })}
+            placeholder="Type to search tags..."
           />
         </div>
       </CollapsibleSection>

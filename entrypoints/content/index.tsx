@@ -12,6 +12,13 @@ export default defineContentScript({
   runAt: 'document_start',
 
   async main(ctx) {
+    // If a Cloudflare challenge is pending, let the page load normally
+    // so the challenge scripts execute in a native browser context
+    if (sessionStorage.getItem('neo-ao3-cf-challenge')) {
+      sessionStorage.removeItem('neo-ao3-cf-challenge')
+      return
+    }
+
     const route = matchRoute(window.location.href)
     if (!route) {
       // In original mode, intercept links to propagate the ?neo-ao3-original param
@@ -56,19 +63,22 @@ export default defineContentScript({
     if (route.type !== 'home') {
       const response = await fetch(window.location.href)
       if (response.status === 403) {
-        // Cloudflare challenge — render challenge page so scripts execute
-        const html = await response.text()
-        document.open()
-        document.write(html)
-        document.close()
+        // Cloudflare challenge — set flag and reload so the browser
+        // renders the challenge page natively with scripts executing
+        sessionStorage.setItem('neo-ao3-cf-challenge', '1')
+        window.location.reload()
         return
       }
-      const html = await response.text()
-      doc = new DOMParser().parseFromString(html, 'text/html')
-      initialUser = parseCurrentUser(doc)
+      if (response.ok) {
+        const html = await response.text()
+        doc = new DOMParser().parseFromString(html, 'text/html')
+        initialUser = parseCurrentUser(doc)
 
-      // Pre-seed the query cache so the page doesn't double-fetch
-      queryClient.setQueryData(['ao3-page', window.location.href], doc)
+        // Pre-seed the query cache so the page doesn't double-fetch
+        queryClient.setQueryData(['ao3-page', window.location.href], doc)
+      }
+      // Non-ok responses (e.g. 525): don't pre-seed cache;
+      // useAo3Page will re-fetch and show the error via PageError
     }
 
     // Mount React

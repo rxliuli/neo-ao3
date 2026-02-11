@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useNavigate } from '../navigation'
 import { useCurrentUser } from '../auth'
+import { parseAuthenticityToken, submitAo3Form } from '@/lib/ao3/submitAo3Form'
 
 function UserMenu() {
   const currentUser = useCurrentUser()
@@ -53,8 +54,19 @@ function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => {
-            window.location.href = '/users/logout'
+          onSelect={async () => {
+            const res = await fetch('/users/logout')
+            if (!res.ok) return
+            const html = await res.text()
+            const doc = new DOMParser().parseFromString(html, 'text/html')
+            const token = parseAuthenticityToken(doc)
+            await submitAo3Form({
+              action: '/users/logout',
+              token,
+              method: 'delete',
+              fields: {},
+            })
+            window.location.href = '/'
           }}
         >
           <LogOut />

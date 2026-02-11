@@ -58,9 +58,12 @@ export function matchRoute(url: string): Route | null {
     return { type: 'fandom-list' }
   }
 
-  // Login: /users/login
+  // Login/Logout: let AO3 handle these natively
   if (path === '/users/login') {
     return { type: 'login' }
+  }
+  if (path === '/users/logout') {
+    return null
   }
 
   // User bookmarks: /users/{name}/bookmarks, /users/{name}/pseuds/{pseudo}/bookmarks

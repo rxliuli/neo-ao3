@@ -22,8 +22,17 @@ export default defineConfig({
       name: 'NeoAO3',
       description:
         'A template for WXT, a WebExtension framework based on Vite and React',
-      permissions: ['storage'],
+      permissions: ['storage', 'activeTab', 'declarativeNetRequest'],
       host_permissions: [],
+      declarative_net_request: {
+        rule_resources: [
+          {
+            id: 'modify_headers',
+            enabled: true,
+            path: 'rules.json',
+          },
+        ],
+      },
       author: {
         email: 'rxliuli@gmail.com',
       },

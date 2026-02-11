@@ -62,29 +62,26 @@ export default defineContentScript({
       `<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>${styles}</style></head>` +
       `<body><div id="neo-ao3-root"></div></body>`
 
-    // Fetch the original page HTML for data parsing (skip for pages that don't need it)
-    let doc: Document | null = null
+    // Fetch the original page HTML for data parsing and auth detection
     let initialUser = null
-    if (route.type !== 'home') {
-      const response = await fetch(window.location.href)
-      if (response.status === 403) {
-        // Cloudflare challenge — set flag and reload so the browser
-        // renders the challenge page natively with scripts executing
-        sessionStorage.setItem('neo-ao3-cf-challenge', '1')
-        window.location.reload()
-        return
-      }
-      if (response.ok) {
-        const html = await response.text()
-        doc = new DOMParser().parseFromString(html, 'text/html')
-        initialUser = parseCurrentUser(doc)
-
-        // Pre-seed the query cache so the page doesn't double-fetch
-        queryClient.setQueryData(['ao3-page', window.location.href], doc)
-      }
-      // Non-ok responses (e.g. 525): don't pre-seed cache;
-      // useAo3Page will re-fetch and show the error via PageError
+    const response = await fetch(window.location.href)
+    if (response.status === 403) {
+      // Cloudflare challenge — set flag and reload so the browser
+      // renders the challenge page natively with scripts executing
+      sessionStorage.setItem('neo-ao3-cf-challenge', '1')
+      window.location.reload()
+      return
     }
+    if (response.ok) {
+      const html = await response.text()
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      initialUser = parseCurrentUser(doc)
+
+      // Pre-seed the query cache so the page doesn't double-fetch
+      queryClient.setQueryData(['ao3-page', window.location.href], doc)
+    }
+    // Non-ok responses (e.g. 429, 525): don't pre-seed cache;
+    // useAo3Page will re-fetch (with auto-retry for 429) and show errors via PageError
 
     // Mount React
     const rootEl = document.getElementById('neo-ao3-root')!

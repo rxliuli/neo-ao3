@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { parseCurrentUser } from '@/lib/ao3/parseLoginForm'
 import { useNavigate } from '../navigation'
+import { useCurrentUrl } from '../hooks/useCurrentUrl'
+import { useAo3Page } from '../hooks/useAo3Page'
+import { useSetCurrentUser } from '../auth'
 
 const FANDOM_CATEGORIES = [
   { name: 'Anime & Manga', path: '/media/Anime%20*a*%20Manga/fandoms' },
@@ -20,6 +24,12 @@ const FANDOM_CATEGORIES = [
 export function HomePage() {
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
+  const { data: doc } = useAo3Page(useCurrentUrl())
+  const setCurrentUser = useSetCurrentUser()
+
+  useEffect(() => {
+    if (doc) setCurrentUser(parseCurrentUser(doc))
+  }, [doc, setCurrentUser])
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()

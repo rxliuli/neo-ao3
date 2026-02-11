@@ -122,9 +122,13 @@ export function parseFilterParams(url: string): FilterState {
     state.categoryIds = params.getAll('work_search[category_ids][]')
   }
 
-  // Word count: "100-50000" format in work_search[word_count]
+  // Word count: ">10000", "<50000", or "10000-50000" format
   const wordCount = params.get('work_search[word_count]') ?? ''
-  if (wordCount.includes('-')) {
+  if (wordCount.startsWith('>')) {
+    state.wordCountFrom = wordCount.slice(1)
+  } else if (wordCount.startsWith('<')) {
+    state.wordCountTo = wordCount.slice(1)
+  } else if (wordCount.includes('-')) {
     const [from, to] = wordCount.split('-')
     state.wordCountFrom = from ?? ''
     state.wordCountTo = to ?? ''
@@ -208,10 +212,13 @@ export function buildFilterUrl(
     }
   }
 
-  // Word count
-  if (state.wordCountFrom || state.wordCountTo) {
-    const wc = `${state.wordCountFrom}-${state.wordCountTo}`
-    u.searchParams.set('work_search[word_count]', wc)
+  // Word count: >FROM, <TO, or FROM-TO
+  if (state.wordCountFrom && state.wordCountTo) {
+    u.searchParams.set('work_search[word_count]', `${state.wordCountFrom}-${state.wordCountTo}`)
+  } else if (state.wordCountFrom) {
+    u.searchParams.set('work_search[word_count]', `>${state.wordCountFrom}`)
+  } else if (state.wordCountTo) {
+    u.searchParams.set('work_search[word_count]', `<${state.wordCountTo}`)
   }
 
   // Crossover, date range, text tag names

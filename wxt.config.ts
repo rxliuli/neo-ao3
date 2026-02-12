@@ -21,7 +21,7 @@ export default defineConfig({
     const manifest: UserManifest = {
       name: 'NeoAO3',
       description:
-        'A template for WXT, a WebExtension framework based on Vite and React',
+        'A WebExtension to enhance the user experience of Archive of Our Own (AO3) website.',
       permissions: ['storage', 'activeTab', 'declarativeNetRequest'],
       host_permissions: [],
       declarative_net_request: {
